@@ -2,7 +2,7 @@
 
 A machine learning web app that predicts whether a news article is **REAL** or **FAKE** based on its text content.
 
-**🌐 Live Demo:** [Add your Streamlit link here]
+**🌐 Live Demo:** Machine learning app that classifies news articles as REAL or FAKE
 
 ---
 
