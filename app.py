@@ -1,93 +1,21 @@
-import streamlit as st
+from flask import Flask, render_template, request, jsonify
 import joblib
-import re
+
+app = Flask(__name__)
 
 # ----------------------------
-# Page configuration
+# Load model and vectorizer once at startup
 # ----------------------------
-st.set_page_config(
-    page_title="Fake News Detector",
-    page_icon="🔍",
-    layout="centered",
-    initial_sidebar_state="collapsed"
-)
+model = joblib.load("fake_news_model.pkl")
+vectorizer = joblib.load("tfidf_vectorizer.pkl")
 
-# ----------------------------
-# Custom styling
-# ----------------------------
-st.markdown("""
-    <style>
-    .main {
-        padding-top: 2rem;
-    }
-    .title-text {
-        font-size: 2.5rem;
-        font-weight: 700;
-        text-align: center;
-        color: #1a1a2e;
-        margin-bottom: 0;
-    }
-    .subtitle-text {
-        font-size: 1rem;
-        text-align: center;
-        color: #6c757d;
-        margin-bottom: 2rem;
-    }
-    .result-real {
-        background-color: #d4edda;
-        border-left: 6px solid #28a745;
-        padding: 1.2rem;
-        border-radius: 8px;
-        font-size: 1.3rem;
-        font-weight: 600;
-        color: #155724;
-        text-align: center;
-        margin-top: 1rem;
-    }
-    .result-fake {
-        background-color: #f8d7da;
-        border-left: 6px solid #dc3545;
-        padding: 1.2rem;
-        border-radius: 8px;
-        font-size: 1.3rem;
-        font-weight: 600;
-        color: #721c24;
-        text-align: center;
-        margin-top: 1rem;
-    }
-    .confidence-text {
-        font-size: 0.95rem;
-        font-weight: 400;
-        margin-top: 0.4rem;
-    }
-    .footer-note {
-        text-align: center;
-        color: #999;
-        font-size: 0.8rem;
-        margin-top: 3rem;
-    }
-    </style>
-""", unsafe_allow_html=True)
 
-# ----------------------------
-# Load model and vectorizer (cached so it only loads once)
-# ----------------------------
-@st.cache_resource
-def load_model():
-    model = joblib.load("fake_news_model.pkl")
-    vectorizer = joblib.load("tfidf_vectorizer.pkl")
-    return model, vectorizer
-
-model, vectorizer = load_model()
-
-# ----------------------------
-# Text cleaning (must match training preprocessing)
-# ----------------------------
 def clean_text(text):
     text = str(text)
     if "(Reuters)" in text:
         text = text.split("(Reuters)", 1)[-1]
     return text.strip()
+
 
 def predict_news(text):
     text_clean = clean_text(text)
@@ -95,62 +23,89 @@ def predict_news(text):
     pred = model.predict(vec)[0]
     prob = model.predict_proba(vec)[0]
     label = "REAL" if pred == 1 else "FAKE"
-    confidence = prob[pred]
+    confidence = float(prob[pred])
     return label, confidence
 
-# ----------------------------
-# Header
-# ----------------------------
-st.markdown('<p class="title-text">🔍 Fake News Detector</p>', unsafe_allow_html=True)
-st.markdown('<p class="subtitle-text">Paste a news article below to check if it looks REAL or FAKE</p>', unsafe_allow_html=True)
+
+def extract_article_from_url(url):
+    """Try newspaper3k first, fall back to raw requests + BeautifulSoup."""
+    try:
+        from newspaper import Article
+        article = Article(url)
+        article.download()
+        article.parse()
+        if article.text and len(article.text.strip().split()) >= 15:
+            return {"success": True, "title": article.title, "text": article.text}
+    except Exception:
+        pass
+
+    try:
+        import requests
+        from bs4 import BeautifulSoup
+
+        headers = {"User-Agent": "Mozilla/5.0 (compatible; Verascope/1.0)"}
+        resp = requests.get(url, headers=headers, timeout=10)
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.content, "html.parser")
+
+        paragraphs = soup.find_all("p")
+        text = " ".join(p.get_text() for p in paragraphs).strip()
+        title = soup.title.string.strip() if soup.title and soup.title.string else ""
+
+        if text and len(text.split()) >= 15:
+            return {"success": True, "title": title, "text": text}
+        return {"success": False, "error": "Not enough readable article text found on this page."}
+    except Exception as e:
+        return {"success": False, "error": f"Could not fetch this URL ({e})."}
+
 
 # ----------------------------
-# Input area
+# Routes
 # ----------------------------
-user_input = st.text_area(
-    "Article text",
-    height=200,
-    placeholder="Paste the full article text here (a few paragraphs works best)...",
-    label_visibility="collapsed"
-)
+@app.route("/")
+def home():
+    return render_template("index.html")
 
-col1, col2, col3 = st.columns([1, 1, 1])
-with col2:
-    check_button = st.button("Check Article", use_container_width=True, type="primary")
 
-# ----------------------------
-# Prediction and result display
-# ----------------------------
-if check_button:
-    if not user_input.strip():
-        st.warning("Please paste some article text first.")
-    elif len(user_input.strip().split()) < 15:
-        st.warning("This looks quite short — for best results, paste at least a few sentences of the article body.")
-    else:
-        with st.spinner("Analyzing..."):
-            label, confidence = predict_news(user_input)
+@app.route("/api/predict-text", methods=["POST"])
+def api_predict_text():
+    data = request.get_json(force=True, silent=True) or {}
+    text = data.get("text", "")
 
-        if label == "REAL":
-            st.markdown(f"""
-                <div class="result-real">
-                    ✅ This looks REAL
-                    <div class="confidence-text">Confidence: {confidence:.1%}</div>
-                </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown(f"""
-                <div class="result-fake">
-                    ⚠️ This looks FAKE
-                    <div class="confidence-text">Confidence: {confidence:.1%}</div>
-                </div>
-            """, unsafe_allow_html=True)
+    if not text or len(text.strip().split()) < 15:
+        return jsonify({
+            "success": False,
+            "error": "Please provide at least a few sentences of article text."
+        }), 400
 
-# ----------------------------
-# Footer / disclaimer
-# ----------------------------
-st.markdown("""
-    <p class="footer-note">
-    ⚠️ This tool is a machine learning demo trained on a limited dataset (primarily 2016–2017 US political news).<br>
-    It may not generalize well to other topics, regions, or recent events. Not a substitute for fact-checking.
-    </p>
-""", unsafe_allow_html=True)
+    label, confidence = predict_news(text)
+    return jsonify({"success": True, "label": label, "confidence": confidence})
+
+
+@app.route("/api/predict-url", methods=["POST"])
+def api_predict_url():
+    data = request.get_json(force=True, silent=True) or {}
+    url = data.get("url", "").strip()
+
+    if not url.lower().startswith(("http://", "https://")):
+        return jsonify({"success": False, "error": "Please provide a valid URL."}), 400
+
+    result = extract_article_from_url(url)
+    if not result["success"]:
+        return jsonify({
+            "success": False,
+            "error": result.get("error", "Could not extract article text from this URL.")
+        }), 422
+
+    label, confidence = predict_news(result["text"])
+    return jsonify({
+        "success": True,
+        "label": label,
+        "confidence": confidence,
+        "title": result.get("title", ""),
+        "extracted_text": result["text"][:3000],
+    })
+
+
+if __name__ == "__main__":
+    app.run(debug=False, host="0.0.0.0", port=5000)
