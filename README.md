@@ -1,76 +1,127 @@
-# 🔍 Fake News Detector
+# 🔍 VERASCOPE — News Verification Desk
 
-A machine learning web app that predicts whether a news article is **REAL** or **FAKE** based on its text content.
+A machine learning powered fake news detector with a full standalone website. Paste article text or a URL, and VERASCOPE analyzes it and returns a verdict — REAL or FAKE — along with a confidence score.
 
-**🌐 Live Demo:** https://fakenewsdetector-4u.streamlit.app
-
----
-
-## What This Project Does
-
-Paste any news article's text into the app, and it will classify it as REAL or FAKE along with a confidence score, using a machine learning model trained on labeled news data.
-
-This was built as a first hands-on machine learning project, covering the full pipeline: data collection, preprocessing, model training, evaluation, and deployment as a live web app.
+**Live site:** _add your deployed URL here once live_
 
 ---
 
-## How It Works
+## Features
 
-1. **Data:** Trained on the [Fake and Real News Dataset](https://www.kaggle.com/datasets/clmentbisaillon/fake-and-real-news-dataset) (~45,000 labeled news articles).
-2. **Preprocessing:** Text is cleaned to remove source-specific artifacts (e.g., wire service tags) before training.
-3. **Feature Extraction:** Article text is converted into numerical features using **TF-IDF** (Term Frequency–Inverse Document Frequency).
-4. **Model:** A **Logistic Regression** classifier is trained on these features to distinguish fake from real articles.
-5. **Interface:** Built with **Streamlit** and deployed on **Streamlit Community Cloud**.
-
----
-
-## Results
-
-- **Test Accuracy:** ~98% on the held-out test set from the training dataset.
-- Precision, recall, and F1-score are balanced across both classes (~0.97–0.98).
-
----
-
-## ⚠️ Known Limitations
-
-This is an honest section, and an important one — no fake news detector is perfect, and understanding *why* a model fails is as valuable as its accuracy score.
-
-- **Narrow training domain:** The training data is almost entirely U.S. political news from 2016–2017, sourced from Reuters (real) and flagged hoax/clickbait sites (fake). As a result, the model performs very well on that specific domain but **does not generalize well** to other topics (e.g., sports, technology, entertainment) or other countries/languages.
-- **Style detection, not fact-checking:** The model is a **text-style classifier**, not a fact-checker. It learned to recognize *patterns of phrasing* common in its training data (e.g., wire-service style: `"CITY (Reuters) - ..."`) rather than verifying the truth of any claim. A true statement written in an unfamiliar style can be misclassified as fake, and a false statement written in a familiar style can be misclassified as real.
-- **No real-time knowledge:** Since the model isn't connected to the internet or any live fact database, it has no knowledge of current events beyond its training data's time period (2016–2017).
-- **Not a substitute for fact-checking:** This tool should be treated as a demonstration of NLP/ML techniques, not a reliable arbiter of truth.
+- **Paste text or paste a URL** — the app extracts article content directly from a link using `newspaper3k`, with a BeautifulSoup fallback for stubborn pages
+- **Confidence score** shown alongside every verdict
+- **Multi-domain training data** — combines the classic ISOT political/world news dataset with the BharatFakeNewsKosh dataset (India-focused, multilingual fact-checks translated to English), extending coverage beyond US politics
+- **Clean Flask backend** serving both the API and the frontend from one app — no separate hosting needed
+- **Custom-designed UI** — a forensic "case file" themed interface, no generic template look
 
 ---
 
 ## Tech Stack
 
-- Python
-- scikit-learn (TF-IDF, Logistic Regression)
-- pandas
-- Streamlit (web interface + deployment)
+| Layer | Tool |
+|---|---|
+| Backend | Flask + gunicorn |
+| Model | scikit-learn (TF-IDF + Logistic Regression) |
+| URL scraping | newspaper3k, BeautifulSoup, requests |
+| Frontend | HTML / CSS / vanilla JS (single template, no framework) |
+| Hosting | Render (or any Python-friendly host) |
 
 ---
 
-## Future Improvements
+## Project Structure
 
-- Expand training data to include diverse topics (sports, tech, entertainment) and multiple languages/regions.
-- Add more recent news data to reduce the "time gap" limitation.
-- Experiment with transformer-based models (e.g., DistilBERT) for better generalization beyond surface-level style patterns.
-- Extend the project to include a fake/phishing website detector and a fake social media account detector.
-
----
-
-## Run It Locally
-
-```bash
-git clone https://github.com/YOUR-USERNAME/fake-news-detector.git
-cd fake-news-detector
-pip install -r requirements.txt
-streamlit run app.py
+```
+├── app.py                  # Flask backend — routes, model loading, prediction logic
+├── templates/
+│   └── index.html          # Frontend website
+├── fake_news_model.pkl     # Trained classifier
+├── tfidf_vectorizer.pkl    # Fitted TF-IDF vectorizer
+├── requirements.txt        # Python dependencies
+└── README.md
 ```
 
 ---
 
-## Disclaimer
+## Running Locally
 
-This project is for educational purposes. It is not intended to be used as a definitive source of truth about any news article's authenticity.
+```bash
+git clone https://github.com/yourusername/your-repo.git
+cd your-repo
+pip install -r requirements.txt
+python app.py
+```
+
+Then open `http://localhost:5000` in your browser.
+
+---
+
+## API Endpoints
+
+### `POST /api/predict-text`
+Check raw article text.
+
+**Request body:**
+```json
+{ "text": "Full article text here..." }
+```
+
+**Response:**
+```json
+{ "success": true, "label": "REAL", "confidence": 0.87 }
+```
+
+### `POST /api/predict-url`
+Fetch and check an article by URL.
+
+**Request body:**
+```json
+{ "url": "https://example.com/news/some-article" }
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "label": "FAKE",
+  "confidence": 0.79,
+  "title": "Article title",
+  "extracted_text": "First 3000 characters of the extracted article..."
+}
+```
+
+---
+
+## Model & Training Data
+
+The current model is trained on a combined dataset of:
+- **ISOT Fake News Dataset** — ~44,900 English-language political/world news articles (2016–2017, US-focused, sourced via Reuters and flagged unreliable sites)
+- **BharatFakeNewsKosh** — ~26,200 fact-checked claims from Indian IFCN-verified fact-checkers (Alt News and others), covering politics, society, health, and more, across multiple Indian languages (translated to English for training)
+
+To retrain the model with new or additional data, see `merge_and_retrain.py` (not included in production deployment — used only to regenerate the `.pkl` files).
+
+---
+
+## ⚠️ Disclaimer
+
+This is a machine learning demo, **not a fact-checking authority**. Its accuracy depends heavily on how similar new input is to its training data. It may not generalize well to:
+- Very recent events
+- Topics or regions underrepresented in training data
+- Deliberately adversarial or sarcastic writing
+
+Always cross-check anything important with a trusted news source or a professional fact-checking organization.
+
+---
+
+## Roadmap / Ideas for Improvement
+
+- [ ] Add more sports and finance-specific training data
+- [ ] Expand crisis/conflict coverage
+- [ ] Explore a transformer-based model for improved accuracy
+- [ ] Add a browser extension for one-click checking
+- [ ] Support additional languages natively (without relying on pre-translated text)
+
+---
+
+## License
+
+_Add your preferred license here (MIT, Apache 2.0, etc.) or state "All rights reserved" if unsure._
