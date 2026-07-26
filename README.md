@@ -2,7 +2,7 @@
 
 A machine learning powered fake news detector with a full standalone website. Paste article text or a URL, and VERASCOPE analyzes it and returns a verdict — REAL or FAKE — along with a confidence score.
 
-**Live site:** _add your deployed URL here once live_
+**Live site:** https://verascope-two.vercel.app/
 
 ---
 
