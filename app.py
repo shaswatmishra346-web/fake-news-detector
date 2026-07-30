@@ -1,7 +1,13 @@
 from flask import Flask, render_template, request, jsonify
 import joblib
 
+# --- ADDED FOR CHATBOT: import the new blueprint (isolated in chatbot.py) ---
+from chatbot import chatbot_bp
+
 app = Flask(__name__)
+
+# --- ADDED FOR CHATBOT: register the /api/chat route ---
+app.register_blueprint(chatbot_bp)
 
 # ----------------------------
 # Load model and vectorizer once at startup
