@@ -1,0 +1,296 @@
+<!--
+  VERASCOPE CHAT WIDGET
+  =====================
+  Paste this entire block into templates/index.html, right before the
+  closing </body> tag. It is fully self-contained (its own CSS + JS,
+  scoped under the "vs-chat" prefix) so it will not clash with your
+  existing styles or scripts.
+
+  ONE THING YOU MUST WIRE UP:
+  After your existing predict-text / predict-url success handler
+  updates the verdict on screen, call:
+
+      window.verascopeSetChatContext(newsText, label, confidence);
+
+  Example — inside your existing fetch().then(data => { ... }) block,
+  right where you currently display data.label / data.confidence:
+
+      window.verascopeSetChatContext(
+        articleText,        // the text you sent to /api/predict-text,
+                             // or data.extracted_text for URL mode
+        data.label,          // "REAL" or "FAKE"
+        data.confidence       // e.g. 0.87
+      );
+
+  That's the only change needed to your existing JS. Everything else
+  (the chat panel, its logic, its API calls) lives entirely in this
+  snippet.
+-->
+
+<style>
+  #vs-chat-root {
+    --vs-bg: #14181d;
+    --vs-panel: #1b2027;
+    --vs-border: #2c333c;
+    --vs-accent: #c9a24b;
+    --vs-text: #e6e6e6;
+    --vs-muted: #9aa3ad;
+    font-family: 'Courier New', Courier, monospace;
+    max-width: 720px;
+    margin: 48px auto;
+    color: var(--vs-text);
+  }
+
+  #vs-chat-root * { box-sizing: border-box; }
+
+  #vs-chat-header {
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--vs-accent);
+    margin-bottom: 8px;
+  }
+
+  #vs-chat-panel {
+    background: var(--vs-panel);
+    border: 1px solid var(--vs-border);
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    height: 420px;
+    overflow: hidden;
+  }
+
+  #vs-chat-history {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .vs-msg {
+    max-width: 85%;
+    padding: 10px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  .vs-msg-user {
+    align-self: flex-end;
+    background: var(--vs-accent);
+    color: #1a1a1a;
+  }
+
+  .vs-msg-bot {
+    align-self: flex-start;
+    background: #262c34;
+    border: 1px solid var(--vs-border);
+  }
+
+  .vs-msg-system {
+    align-self: center;
+    color: var(--vs-muted);
+    font-size: 12px;
+    font-style: italic;
+  }
+
+  #vs-chat-inputrow {
+    display: flex;
+    gap: 8px;
+    padding: 12px;
+    border-top: 1px solid var(--vs-border);
+    background: var(--vs-bg);
+  }
+
+  #vs-chat-input {
+    flex: 1;
+    background: #0f1215;
+    border: 1px solid var(--vs-border);
+    border-radius: 4px;
+    padding: 10px 12px;
+    color: var(--vs-text);
+    font-family: inherit;
+    font-size: 14px;
+    resize: none;
+  }
+
+  #vs-chat-input:focus { outline: 1px solid var(--vs-accent); }
+
+  .vs-btn {
+    background: var(--vs-accent);
+    color: #1a1a1a;
+    border: none;
+    border-radius: 4px;
+    padding: 0 16px;
+    font-family: inherit;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 13px;
+  }
+
+  .vs-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .vs-btn-secondary {
+    background: transparent;
+    color: var(--vs-muted);
+    border: 1px solid var(--vs-border);
+  }
+
+  #vs-chat-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 8px 12px 0;
+  }
+
+  .vs-loading-dots::after {
+    content: '...';
+    animation: vs-dots 1.2s steps(4, end) infinite;
+  }
+
+  @keyframes vs-dots {
+    0%   { content: ''; }
+    25%  { content: '.'; }
+    50%  { content: '..'; }
+    75%  { content: '...'; }
+    100% { content: ''; }
+  }
+
+  @media (max-width: 640px) {
+    #vs-chat-root { margin: 24px 12px; }
+    #vs-chat-panel { height: 380px; }
+  }
+</style>
+
+<div id="vs-chat-root">
+  <div id="vs-chat-header">Case Consultation // Ask VERASCOPE</div>
+  <div id="vs-chat-panel">
+    <div id="vs-chat-toolbar">
+      <button id="vs-chat-clear" class="vs-btn vs-btn-secondary" type="button">Clear chat</button>
+    </div>
+    <div id="vs-chat-history">
+      <div class="vs-msg vs-msg-system">Run a check above, then ask me anything about the result.</div>
+    </div>
+    <div id="vs-chat-inputrow">
+      <textarea id="vs-chat-input" rows="1" placeholder="Ask about this verdict..."></textarea>
+      <button id="vs-chat-send" class="vs-btn" type="button">Send</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- Context set by your existing predict success handler ----
+  // Call window.verascopeSetChatContext(newsText, prediction, confidence)
+  // right after you display a verdict on screen.
+  let vsContext = { newsText: "", prediction: "", confidence: null };
+  let vsHistory = [];
+
+  window.verascopeSetChatContext = function (newsText, prediction, confidence) {
+    vsContext = { newsText: newsText || "", prediction: prediction || "", confidence: confidence };
+    vsHistory = []; // fresh conversation per new verdict
+    const historyEl = document.getElementById("vs-chat-history");
+    historyEl.innerHTML = "";
+    appendSystemMsg(
+      "Case loaded: " + (prediction || "UNKNOWN") +
+      (confidence != null ? " (" + Math.round(confidence * 100) + "% confidence)" : "") +
+      ". Ask me anything about it."
+    );
+  };
+
+  const historyEl = document.getElementById("vs-chat-history");
+  const inputEl = document.getElementById("vs-chat-input");
+  const sendBtn = document.getElementById("vs-chat-send");
+  const clearBtn = document.getElementById("vs-chat-clear");
+
+  function appendMsg(role, text) {
+    const div = document.createElement("div");
+    div.className = "vs-msg " + (role === "user" ? "vs-msg-user" : "vs-msg-bot");
+    div.textContent = text;
+    historyEl.appendChild(div);
+    historyEl.scrollTop = historyEl.scrollHeight;
+    return div;
+  }
+
+  function appendSystemMsg(text) {
+    const div = document.createElement("div");
+    div.className = "vs-msg vs-msg-system";
+    div.textContent = text;
+    historyEl.appendChild(div);
+    historyEl.scrollTop = historyEl.scrollHeight;
+  }
+
+  async function sendMessage() {
+    const text = inputEl.value.trim();
+    if (!text) return;
+
+    if (!vsContext.newsText || !vsContext.prediction) {
+      appendSystemMsg("Run a check above first — I need a verdict to talk about.");
+      return;
+    }
+
+    appendMsg("user", text);
+    vsHistory.push({ role: "user", content: text });
+    inputEl.value = "";
+    sendBtn.disabled = true;
+
+    const loadingMsg = appendMsg("bot", "Thinking");
+    loadingMsg.classList.add("vs-loading-dots");
+
+    try {
+      const resp = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_message: text,
+          news_text: vsContext.newsText,
+          prediction: vsContext.prediction,
+          confidence: vsContext.confidence,
+          history: vsHistory,
+        }),
+      });
+
+      const data = await resp.json();
+
+      loadingMsg.classList.remove("vs-loading-dots");
+
+      if (data.success) {
+        loadingMsg.textContent = data.chatbot_reply;
+        vsHistory.push({ role: "assistant", content: data.chatbot_reply });
+      } else {
+        loadingMsg.remove();
+        appendSystemMsg(data.error || "Something went wrong. Please try again.");
+      }
+    } catch (err) {
+      loadingMsg.remove();
+      appendSystemMsg("Could not reach the chatbot service. Check your connection and try again.");
+    } finally {
+      sendBtn.disabled = false;
+    }
+  }
+
+  sendBtn.addEventListener("click", sendMessage);
+  inputEl.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  clearBtn.addEventListener("click", function () {
+    vsHistory = [];
+    historyEl.innerHTML = "";
+    appendSystemMsg(
+      vsContext.prediction
+        ? "Chat cleared. Still discussing: " + vsContext.prediction + "."
+        : "Chat cleared. Run a check above to begin."
+    );
+  });
+})();
+</script>
