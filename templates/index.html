@@ -24,11 +24,7 @@
         .faq-answer {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.3s cubic-bezier(0, 1, 0, 1);
-        }
-        .faq-answer.open {
-            max-height: 500px;
-            transition: max-height 0.3s cubic-bezier(1, 0, 1, 0);
+            transition: max-height 0.3s ease-out;
         }
     </style>
 </head>
@@ -281,40 +277,46 @@
             <div class="space-y-4">
                 <!-- FAQ Item 1 -->
                 <div class="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden">
-                    <button onclick="toggleFaq(1)" class="w-full flex items-center justify-between p-6 text-left font-semibold text-white focus:outline-none">
+                    <button onclick="toggleFaq(1)" class="w-full flex items-center justify-between p-6 text-left font-semibold text-white focus:outline-none" aria-expanded="false" id="faq-btn-1">
                         <span>How does Verascope verify news claims so quickly?</span>
                         <svg id="faq-icon-1" class="w-5 h-5 text-cyan-400 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
                     </button>
-                    <div id="faq-ans-1" class="faq-answer px-6 pb-6 text-sm text-slate-400 leading-relaxed">
-                        Verascope utilizes a multi-threaded parallel processing pipeline. When input is received, our LLMs parse the text into core claim components, simultaneously querying cross-referenced databases, news agency archives, and official statements in under two seconds.
+                    <div id="faq-ans-1" class="faq-answer px-6 pb-0 text-sm text-slate-400 leading-relaxed">
+                        <div class="pb-6">
+                            Verascope utilizes a multi-threaded parallel processing pipeline. When input is received, our LLMs parse the text into core claim components, simultaneously querying cross-referenced databases, news agency archives, and official statements in under two seconds.
+                        </div>
                     </div>
                 </div>
 
                 <!-- FAQ Item 2 -->
                 <div class="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden">
-                    <button onclick="toggleFaq(2)" class="w-full flex items-center justify-between p-6 text-left font-semibold text-white focus:outline-none">
+                    <button onclick="toggleFaq(2)" class="w-full flex items-center justify-between p-6 text-left font-semibold text-white focus:outline-none" aria-expanded="false" id="faq-btn-2">
                         <span>Can Verascope detect AI-generated media and deepfakes?</span>
                         <svg id="faq-icon-2" class="w-5 h-5 text-cyan-400 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
                     </button>
-                    <div id="faq-ans-2" class="faq-answer px-6 pb-6 text-sm text-slate-400 leading-relaxed">
-                        Yes. Verascope checks syntactic text patterns and image artifacts associated with synthetic media generators to detect both AI-generated text passages and manipulated imagery.
+                    <div id="faq-ans-2" class="faq-answer px-6 pb-0 text-sm text-slate-400 leading-relaxed">
+                        <div class="pb-6">
+                            Yes. Verascope checks syntactic text patterns and image artifacts associated with synthetic media generators to detect both AI-generated text passages and manipulated imagery.
+                        </div>
                     </div>
                 </div>
 
                 <!-- FAQ Item 3 -->
                 <div class="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden">
-                    <button onclick="toggleFaq(3)" class="w-full flex items-center justify-between p-6 text-left font-semibold text-white focus:outline-none">
+                    <button onclick="toggleFaq(3)" class="w-full flex items-center justify-between p-6 text-left font-semibold text-white focus:outline-none" aria-expanded="false" id="faq-btn-3">
                         <span>Is Verascope politically unbiased?</span>
                         <svg id="faq-icon-3" class="w-5 h-5 text-cyan-400 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
                     </button>
-                    <div id="faq-ans-3" class="faq-answer px-6 pb-6 text-sm text-slate-400 leading-relaxed">
-                        Our algorithm evaluates factual claims against primary, verifiable documentation and raw datasets rather than commentary or opinion pieces, keeping bias scores low and transparency high.
+                    <div id="faq-ans-3" class="faq-answer px-6 pb-0 text-sm text-slate-400 leading-relaxed">
+                        <div class="pb-6">
+                            Our algorithm evaluates factual claims against primary, verifiable documentation and raw datasets rather than commentary or opinion pieces, keeping bias scores low and transparency high.
+                        </div>
                     </div>
                 </div>
             </div>
@@ -340,6 +342,13 @@
 
     <!-- ==================== JAVASCRIPT INTERACTIVITY ==================== -->
     <script>
+        // Utility to escape HTML to prevent XSS
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+
         // Mobile Navigation Toggle
         const menuBtn = document.getElementById('menu-btn');
         const mobileMenu = document.getElementById('mobile-menu');
@@ -410,26 +419,29 @@
         function askBot() {
             const inputEl = document.getElementById('bot-input');
             const chatContainer = document.getElementById('chat-messages');
-            const userText = inputEl.value.trim();
+            const rawText = inputEl.value.trim();
 
-            if (!userText) return;
+            if (!rawText) return;
+
+            const userText = escapeHTML(rawText);
 
             // Render User Message
             const userMsgHtml = `
                 <div class="flex justify-end">
-                    <div class="bg-cyan-600/30 border border-cyan-500/40 text-cyan-200 text-xs px-3 py-2 rounded-xl max-w-[85%]">
+                    <div class="bg-cyan-600/30 border border-cyan-500/40 text-cyan-200 text-xs px-3 py-2 rounded-xl max-w-[85%] break-words">
                         ${userText}
                     </div>
                 </div>
             `;
             chatContainer.insertAdjacentHTML('beforeend', userMsgHtml);
             inputEl.value = '';
+            chatContainer.scrollTop = chatContainer.scrollHeight;
 
             // Generate Automated AI Response
             setTimeout(() => {
                 let botReply = "Hello! I can provide additional context, source breakdowns, or bias metrics regarding this analysis result. What specific claim details would you like to explore?";
                 
-                const lower = userText.toLowerCase();
+                const lower = rawText.toLowerCase();
                 if (lower.includes('hi') || lower.includes('hello') || lower.includes('hey')) {
                     botReply = "Hello! Feel free to ask about the 14 cross-checked sources, methodology, or specific parts of this claim analysis.";
                 } else if (lower.includes('source') || lower.includes('where')) {
@@ -451,20 +463,30 @@
             }, 400);
         }
 
-        // FAQ Accordion Toggle
+        // FAQ Accordion Toggle with dynamic scrollHeight transition
         function toggleFaq(id) {
             const ans = document.getElementById(`faq-ans-${id}`);
             const icon = document.getElementById(`faq-icon-${id}`);
+            const btn = document.getElementById(`faq-btn-${id}`);
             
-            if (ans.classList.contains('open')) {
-                ans.classList.remove('open');
-                icon.classList.remove('rotate-180');
-            } else {
-                document.querySelectorAll('.faq-answer').forEach(el => el.classList.remove('open'));
-                document.querySelectorAll('[id^="faq-icon-"]').forEach(el => el.classList.remove('rotate-180'));
-                
-                ans.classList.add('open');
+            const isOpen = ans.style.maxHeight && ans.style.maxHeight !== '0px';
+
+            // Close all items
+            document.querySelectorAll('.faq-answer').forEach(el => {
+                el.style.maxHeight = '0px';
+            });
+            document.querySelectorAll('[id^="faq-icon-"]').forEach(el => {
+                el.classList.remove('rotate-180');
+            });
+            document.querySelectorAll('[id^="faq-btn-"]').forEach(el => {
+                el.setAttribute('aria-expanded', 'false');
+            });
+
+            // Open clicked item if it was closed
+            if (!isOpen) {
+                ans.style.maxHeight = ans.scrollHeight + 'px';
                 icon.classList.add('rotate-180');
+                btn.setAttribute('aria-expanded', 'true');
             }
         }
     </script>
