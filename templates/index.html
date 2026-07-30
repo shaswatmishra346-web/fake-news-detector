@@ -298,6 +298,111 @@
     100% { transform: scale(1) rotate(-8deg); opacity: 1; }
   }
 
+  /* ---------- CHATBOT PANEL (Case Consultation) ---------- */
+  .chat-panel {
+    margin-top: 24px;
+    border-top: 1px dashed rgba(36,29,16,0.25);
+    padding-top: 22px;
+  }
+  .chat-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .chat-panel-header .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #6b5c34;
+  }
+  .chat-clear-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    background: transparent;
+    border: 1px solid rgba(36,29,16,0.25);
+    color: #6b5c34;
+    border-radius: 4px;
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+  .chat-clear-btn:hover { background: rgba(36,29,16,0.06); }
+
+  .chat-history {
+    max-height: 300px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 4px 2px;
+    margin-bottom: 12px;
+  }
+  .chat-msg {
+    max-width: 85%;
+    padding: 10px 13px;
+    border-radius: 6px;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  .chat-msg-user {
+    align-self: flex-end;
+    background: #241d10;
+    color: var(--paper);
+  }
+  .chat-msg-bot {
+    align-self: flex-start;
+    background: rgba(255,255,255,0.6);
+    border: 1px solid rgba(36,29,16,0.15);
+    color: #241d10;
+  }
+  .chat-msg-system {
+    align-self: center;
+    color: rgba(36,29,16,0.55);
+    font-size: 0.78rem;
+    font-style: italic;
+  }
+  .chat-loading::after {
+    content: '';
+    animation: chatDots 1.2s steps(4, end) infinite;
+  }
+  @keyframes chatDots {
+    0%   { content: ''; }
+    25%  { content: '.'; }
+    50%  { content: '..'; }
+    75%  { content: '...'; }
+    100% { content: ''; }
+  }
+
+  .chat-inputrow {
+    display: flex;
+    gap: 8px;
+  }
+  .chat-inputrow textarea {
+    flex: 1;
+    min-height: 44px;
+    max-height: 120px;
+  }
+  .chat-send-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    background: #241d10;
+    color: var(--paper);
+    border: none;
+    padding: 0 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .chat-send-btn:hover { opacity: 0.9; }
+  .chat-send-btn:disabled { opacity: 0.5; cursor: default; }
+
   /* ---------- HOW IT WORKS ---------- */
   .section { padding: 90px 0; border-top: 1px solid var(--line); }
   .section-head { max-width: 560px; margin-bottom: 52px; }
@@ -454,6 +559,20 @@
         </div>
 
         <div class="verdict-zone" id="verdictZone"></div>
+
+        <!-- CHATBOT: Case Consultation panel, hidden until a verdict exists -->
+        <div class="chat-panel" id="chatPanel" style="display:none;">
+          <div class="chat-panel-header">
+            <span class="label">Case Consultation — Ask VERASCOPE</span>
+            <button class="chat-clear-btn" id="chatClear" type="button">Clear chat</button>
+          </div>
+          <div class="chat-history" id="chatHistory"></div>
+          <div class="chat-inputrow">
+            <textarea id="chatInput" rows="1" placeholder="Ask why, request a summary, or ask how to verify this..."></textarea>
+            <button class="chat-send-btn" id="chatSend" type="button">Send</button>
+          </div>
+        </div>
+
       </div>
     </div>
   </section>
@@ -524,6 +643,7 @@
       document.getElementById('verdictZone').innerHTML = '';
       hideMsg();
       document.getElementById('extractPreview').style.display = 'none';
+      hideChatPanel();
     });
   });
 
@@ -547,18 +667,22 @@
     box.textContent = '';
   }
 
-  function renderVerdict(label, confidence) {
+  function renderVerdict(label, confidence, articleText) {
     const zone = document.getElementById('verdictZone');
     const cls = label === 'REAL' ? 'real' : 'fake';
     const text = label === 'REAL' ? '✓ Verified — Likely Real' : '✕ Flagged — Likely Fake';
     zone.innerHTML = `<div class="stamp ${cls}">${text}<span class="conf">Confidence: ${(confidence * 100).toFixed(1)}% · Case ${nextCaseNumber()}</span></div>`;
     caseEl.textContent = '2026-' + String(parseInt(localStorage.getItem('vs_case_count') || '0', 10)).padStart(6, '0');
+
+    // Hand this verdict + article off to the chat panel
+    setChatContext(articleText || '', label, confidence);
   }
 
   async function runText() {
     hideMsg();
     document.getElementById('verdictZone').innerHTML = '';
     document.getElementById('extractPreview').style.display = 'none';
+    hideChatPanel();
     const text = document.getElementById('textInput').value.trim();
     if (!text) { showMsg('Please paste some article text first.', 'warn'); return; }
     if (text.split(/\s+/).length < 15) { showMsg('This looks quite short — paste at least a few sentences for a reliable read.', 'warn'); return; }
@@ -573,7 +697,7 @@
       });
       const data = await res.json();
       if (!data.success) { showMsg(data.error || 'Something went wrong.', 'err'); }
-      else { renderVerdict(data.label, data.confidence); }
+      else { renderVerdict(data.label, data.confidence, text); }
     } catch (e) {
       showMsg('Could not reach the analysis server. Please try again.', 'err');
     } finally {
@@ -585,6 +709,7 @@
     hideMsg();
     document.getElementById('verdictZone').innerHTML = '';
     document.getElementById('extractPreview').style.display = 'none';
+    hideChatPanel();
     const url = document.getElementById('urlInput').value.trim();
     if (!url) { showMsg('Please paste a URL first.', 'warn'); return; }
     if (!/^https?:\/\//i.test(url)) { showMsg('Please enter a valid URL starting with http:// or https://', 'warn'); return; }
@@ -606,7 +731,7 @@
           document.getElementById('extractText').textContent = (data.extracted_text || '').slice(0, 600) + '…';
           document.getElementById('extractPreview').style.display = 'block';
         }
-        renderVerdict(data.label, data.confidence);
+        renderVerdict(data.label, data.confidence, data.extracted_text || '');
       }
     } catch (e) {
       showMsg('Could not reach the analysis server. Please try again.', 'err');
@@ -617,6 +742,117 @@
 
   document.getElementById('runText').addEventListener('click', runText);
   document.getElementById('runUrl').addEventListener('click', runUrl);
+
+  // ---------------------------------------------------------
+  // CHATBOT — Case Consultation
+  // Explains the existing verdict. Never re-classifies anything.
+  // ---------------------------------------------------------
+  let chatContext = { newsText: '', prediction: '', confidence: null };
+  let chatHistory = [];
+
+  const chatPanelEl = document.getElementById('chatPanel');
+  const chatHistoryEl = document.getElementById('chatHistory');
+  const chatInputEl = document.getElementById('chatInput');
+  const chatSendBtn = document.getElementById('chatSend');
+  const chatClearBtn = document.getElementById('chatClear');
+
+  function hideChatPanel() {
+    chatPanelEl.style.display = 'none';
+    chatHistoryEl.innerHTML = '';
+    chatHistory = [];
+    chatContext = { newsText: '', prediction: '', confidence: null };
+  }
+
+  function setChatContext(newsText, prediction, confidence) {
+    chatContext = { newsText, prediction, confidence };
+    chatHistory = [];
+    chatHistoryEl.innerHTML = '';
+    chatPanelEl.style.display = 'block';
+    appendChatSystemMsg(
+      `Case loaded: ${prediction} (${(confidence * 100).toFixed(1)}% confidence). Ask me anything about it.`
+    );
+  }
+
+  function appendChatMsg(role, text) {
+    const div = document.createElement('div');
+    div.className = 'chat-msg ' + (role === 'user' ? 'chat-msg-user' : 'chat-msg-bot');
+    div.textContent = text;
+    chatHistoryEl.appendChild(div);
+    chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+    return div;
+  }
+
+  function appendChatSystemMsg(text) {
+    const div = document.createElement('div');
+    div.className = 'chat-msg chat-msg-system';
+    div.textContent = text;
+    chatHistoryEl.appendChild(div);
+    chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+  }
+
+  async function sendChatMessage() {
+    const text = chatInputEl.value.trim();
+    if (!text) return;
+
+    if (!chatContext.newsText || !chatContext.prediction) {
+      appendChatSystemMsg('Run a check above first — I need a verdict to discuss.');
+      return;
+    }
+
+    appendChatMsg('user', text);
+    chatHistory.push({ role: 'user', content: text });
+    chatInputEl.value = '';
+    chatSendBtn.disabled = true;
+
+    const loadingMsg = appendChatMsg('bot', 'Thinking');
+    loadingMsg.classList.add('chat-loading');
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_message: text,
+          news_text: chatContext.newsText,
+          prediction: chatContext.prediction,
+          confidence: chatContext.confidence,
+          history: chatHistory,
+        }),
+      });
+      const data = await res.json();
+      loadingMsg.classList.remove('chat-loading');
+
+      if (data.success) {
+        loadingMsg.textContent = data.chatbot_reply;
+        chatHistory.push({ role: 'assistant', content: data.chatbot_reply });
+      } else {
+        loadingMsg.remove();
+        appendChatSystemMsg(data.error || 'Something went wrong. Please try again.');
+      }
+    } catch (e) {
+      loadingMsg.remove();
+      appendChatSystemMsg('Could not reach the chatbot service. Please try again.');
+    } finally {
+      chatSendBtn.disabled = false;
+    }
+  }
+
+  chatSendBtn.addEventListener('click', sendChatMessage);
+  chatInputEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendChatMessage();
+    }
+  });
+  chatClearBtn.addEventListener('click', () => {
+    chatHistory = [];
+    chatHistoryEl.innerHTML = '';
+    if (chatContext.prediction) {
+      appendChatSystemMsg(`Chat cleared. Still discussing: ${chatContext.prediction}.`);
+    } else {
+      appendChatSystemMsg('Chat cleared. Run a check above to begin.');
+    }
+  });
 </script>
 
 </body>
