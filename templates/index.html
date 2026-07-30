@@ -131,7 +131,7 @@
 
             <!-- Tab 1: Text Input -->
             <div id="view-text" class="space-y-4">
-                <textarea id="claim-text-input" rows="4" class="w-full bg-slate-900/90 border border-slate-800 rounded-2xl p-4 text-slate-200 text-sm focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 resize-none placeholder-slate-500 font-sans" placeholder="Paste a claim, sentence, or news statement to analyze..."></textarea>
+                <textarea id="claim-text-input" rows="3" class="w-full bg-slate-900/90 border border-slate-800 rounded-2xl p-4 text-slate-200 text-sm focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 resize-none placeholder-slate-500 font-sans" placeholder="Paste a claim, sentence, or news statement to analyze..."></textarea>
             </div>
 
             <!-- Tab 2: URL Input (Hidden by default) -->
@@ -140,13 +140,13 @@
             </div>
 
             <!-- Action Button -->
-            <div class="mt-6 flex justify-end">
+            <div class="mt-4 flex justify-end">
                 <button onclick="runVerification()" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 text-white font-semibold text-sm shadow-lg shadow-cyan-500/20 hover:opacity-95 transition-all">
                     Run Analysis
                 </button>
             </div>
 
-            <!-- Verification Output Panel -->
+            <!-- Verification Output Panel (Always Visible) -->
             <div id="verdict-box" class="mt-8 border-t border-white/10 pt-6 space-y-6">
                 <!-- Status Row -->
                 <div class="flex flex-wrap items-center justify-between gap-4">
@@ -396,7 +396,6 @@
         // Run Main Analysis Button Action
         function runVerification() {
             const verdictBox = document.getElementById('verdict-box');
-            verdictBox.classList.remove('hidden');
             verdictBox.scrollIntoView({ behavior: 'smooth' });
         }
 
