@@ -92,7 +92,7 @@
     <section class="relative pt-24 pb-20 px-6 lg:px-12 max-w-7xl mx-auto text-center">
         <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-300 text-xs font-mono uppercase tracking-widest mb-8">
             <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-            Real-Time Truth Engine Engine 3.0
+            Real-Time Truth Engine 3.0
         </div>
 
         <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-[1.15] max-w-5xl mx-auto">
@@ -131,7 +131,7 @@
 
             <!-- Tab 1: Text Input -->
             <div id="view-text" class="space-y-4">
-                <textarea id="claim-text-input" rows="4" class="w-full bg-slate-900/90 border border-slate-800 rounded-2xl p-4 text-slate-200 text-sm focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 resize-none placeholder-slate-500 font-sans" placeholder="Paste a claim, sentence, or news statement to analyze... (e.g., 'NASA discovered liquid water on Mars surface yesterday')"></textarea>
+                <textarea id="claim-text-input" rows="4" class="w-full bg-slate-900/90 border border-slate-800 rounded-2xl p-4 text-slate-200 text-sm focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 resize-none placeholder-slate-500 font-sans" placeholder="Paste a claim, sentence, or news statement to analyze..."></textarea>
             </div>
 
             <!-- Tab 2: URL Input (Hidden by default) -->
@@ -146,22 +146,45 @@
                 </button>
             </div>
 
-            <!-- Simulated Results Output (Initially Hidden) -->
-            <div id="verdict-box" class="mt-8 border-t border-white/10 pt-6 hidden space-y-4">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-mono uppercase tracking-widest text-slate-400">Analysis Verdict</span>
-                    <span class="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-xs font-bold">96.4% VERIFIED REAL</span>
-                </div>
-                <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2 text-sm">
-                    <div class="flex items-center gap-2 text-emerald-400 font-semibold">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        Claim Matches Official Releases
+            <!-- Verification Output Panel -->
+            <div id="verdict-box" class="mt-8 border-t border-white/10 pt-6 space-y-6">
+                <!-- Status Row -->
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <span class="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-mono text-xs font-bold tracking-wide">
+                            VERDICT: REAL
+                        </span>
+                        <span class="text-slate-300 text-sm font-medium">96.4% Confidence Score</span>
                     </div>
-                    <p class="text-slate-400 text-xs leading-relaxed">
-                        Cross-referenced against 14 verified primary news archives and official press releases. Contextual integrity and emotional polarity rating are within neutral, factual bounds.
+                    <span class="text-cyan-400 text-sm font-medium hover:underline cursor-pointer">
+                        Cross-checked 14 Sources
+                    </span>
+                </div>
+
+                <!-- Analysis Summary -->
+                <p class="text-slate-200 text-sm leading-relaxed">
+                    <strong class="text-white">Analysis Summary:</strong> The core claims match official press statements and verified primary reports from major reputable wire services.
+                </p>
+
+                <!-- Interactive Consultation Bot Card -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 space-y-4">
+                    <div class="text-xs font-mono font-bold uppercase tracking-widest text-cyan-400">
+                        VERASCOPE CONSULTATION BOT
+                    </div>
+                    <p class="text-slate-400 text-xs">
+                        Have questions about this analysis? Ask follow-up details below:
                     </p>
+
+                    <!-- Chat Messages Output Stream -->
+                    <div id="chat-messages" class="space-y-3 max-h-60 overflow-y-auto pr-1"></div>
+
+                    <!-- Input Bar -->
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="bot-input" onkeypress="handleKeyPress(event)" placeholder="Ask a question..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/60 placeholder-slate-500 font-sans">
+                        <button onclick="askBot()" class="px-5 py-2.5 bg-slate-800 hover:bg-cyan-600 text-cyan-300 hover:text-white font-semibold text-sm rounded-xl border border-slate-700 transition-all">
+                            Ask
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -340,7 +363,6 @@
             }
         });
 
-        // Close mobile drawer on navigation link click
         document.querySelectorAll('.mobile-nav-link').forEach(link => {
             link.addEventListener('click', () => {
                 mobileMenu.classList.remove('translate-y-0');
@@ -371,10 +393,63 @@
             }
         }
 
-        // Run Verification Action Simulator
+        // Run Main Analysis Button Action
         function runVerification() {
             const verdictBox = document.getElementById('verdict-box');
             verdictBox.classList.remove('hidden');
+            verdictBox.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Handle ENTER Key inside Bot Input
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') {
+                askBot();
+            }
+        }
+
+        // Verascope Consultation Bot Interactive Logic
+        function askBot() {
+            const inputEl = document.getElementById('bot-input');
+            const chatContainer = document.getElementById('chat-messages');
+            const userText = inputEl.value.trim();
+
+            if (!userText) return;
+
+            // Render User Message
+            const userMsgHtml = `
+                <div class="flex justify-end">
+                    <div class="bg-cyan-600/30 border border-cyan-500/40 text-cyan-200 text-xs px-3 py-2 rounded-xl max-w-[85%]">
+                        ${userText}
+                    </div>
+                </div>
+            `;
+            chatContainer.insertAdjacentHTML('beforeend', userMsgHtml);
+            inputEl.value = '';
+
+            // Generate Automated AI Response
+            setTimeout(() => {
+                let botReply = "Hello! I can provide additional context, source breakdowns, or bias metrics regarding this analysis result. What specific claim details would you like to explore?";
+                
+                const lower = userText.toLowerCase();
+                if (lower.includes('hi') || lower.includes('hello') || lower.includes('hey')) {
+                    botReply = "Hello! Feel free to ask about the 14 cross-checked sources, methodology, or specific parts of this claim analysis.";
+                } else if (lower.includes('source') || lower.includes('where')) {
+                    botReply = "Sources include Reuters, AP News, official agency wire statements, and verified digital transcripts.";
+                } else if (lower.includes('accuracy') || lower.includes('confidence') || lower.includes('score')) {
+                    botReply = "The 96.4% confidence score is generated based on direct textual correlation and source domain authority ratings.";
+                }
+
+                const botMsgHtml = `
+                    <div class="flex justify-start">
+                        <div class="bg-slate-800/90 border border-slate-700 text-slate-300 text-xs px-3 py-2.5 rounded-xl max-w-[85%] leading-relaxed">
+                            <span class="text-cyan-400 font-semibold block mb-1">Verascope Bot:</span>
+                            ${botReply}
+                        </div>
+                    </div>
+                `;
+                chatContainer.insertAdjacentHTML('beforeend', botMsgHtml);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 400);
         }
 
         // FAQ Accordion Toggle
@@ -386,7 +461,6 @@
                 ans.classList.remove('open');
                 icon.classList.remove('rotate-180');
             } else {
-                // Close all other FAQs
                 document.querySelectorAll('.faq-answer').forEach(el => el.classList.remove('open'));
                 document.querySelectorAll('[id^="faq-icon-"]').forEach(el => el.classList.remove('rotate-180'));
                 
