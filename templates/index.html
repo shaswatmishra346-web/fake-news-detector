@@ -1,496 +1,461 @@
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verascope - Real-Time AI Fact & News Verification Engine</title>
-    <!-- Tailwind CSS via CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Custom Keyframe Animations & Styles */
-        @keyframes pulseGlow {
-            0%, 100% { opacity: 0.4; transform: scale(1); }
-            50% { opacity: 0.8; transform: scale(1.05); }
-        }
-        .animate-glow {
-            animation: pulseGlow 6s infinite ease-in-out;
-        }
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .faq-answer {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verascope - Real-Time AI Fact & News Verification Engine</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+        .animate-glow {
+            animation: pulseGlow 6s infinite ease-in-out;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-cyan-500 selection:text-slate-950 overflow-x-hidden">
 
-    <!-- Background Accent Orbs -->
-    <div class="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[600px] pointer-events-none -z-10 overflow-hidden">
-        <div class="absolute -top-32 left-1/4 w-96 h-96 bg-cyan-600/20 rounded-full blur-[128px] animate-glow"></div>
-        <div class="absolute top-20 right-1/4 w-96 h-96 bg-indigo-600/20 rounded-full blur-[128px] animate-glow" style="animation-delay: 3s;"></div>
-    </div>
+    <!-- Background Accent Orbs -->
+    <div class="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[600px] pointer-events-none -z-10 overflow-hidden">
+        <div class="absolute -top-32 left-1/4 w-96 h-96 bg-cyan-600/20 rounded-full blur-[128px] animate-glow"></div>
+        <div class="absolute top-20 right-1/4 w-96 h-96 bg-indigo-600/20 rounded-full blur-[128px] animate-glow" style="animation-delay: 3s;"></div>
+    </div>
 
-    <!-- ==================== HEADER & NAVIGATION ==================== -->
-    <header class="sticky top-0 z-50 glass-panel border-b border-white/10">
-        <div class="max-w-7xl mx-auto px-6 lg:px-12 h-20 flex items-center justify-between">
-            <!-- Brand Logo -->
-            <a href="#" class="flex items-center gap-3 group">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-500 flex items-center justify-center text-white font-extrabold tracking-widest shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform">
-                    V
-                </div>
-                <span class="font-extrabold text-xl tracking-[0.2em] text-white">VERASCOPE</span>
-            </a>
+    <!-- HEADER & NAVIGATION -->
+    <header class="sticky top-0 z-50 glass-panel border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-6 lg:px-12 h-20 flex items-center justify-between">
+            <a href="#" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-500 flex items-center justify-center text-white font-extrabold tracking-widest shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform">
+                    V
+                </div>
+                <span class="font-extrabold text-xl tracking-[0.2em] text-white">VERASCOPE</span>
+            </a>
 
-            <!-- Desktop Nav Links -->
-            <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
-                <a href="#demo" class="hover:text-cyan-400 transition-colors">Live Desk</a>
-                <a href="#features" class="hover:text-cyan-400 transition-colors">Features</a>
-                <a href="#api" class="hover:text-cyan-400 transition-colors">API & Docs</a>
-                <a href="#faq" class="hover:text-cyan-400 transition-colors">FAQ</a>
-            </nav>
+            <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+                <a href="#demo" class="hover:text-cyan-400 transition-colors">Live Desk</a>
+                <a href="#features" class="hover:text-cyan-400 transition-colors">Features</a>
+                <a href="#api" class="hover:text-cyan-400 transition-colors">API & Docs</a>
+                <a href="#faq" class="hover:text-cyan-400 transition-colors">FAQ</a>
+            </nav>
 
-            <!-- Desktop CTA -->
-            <div class="hidden md:flex items-center gap-4">
-                <a href="#demo" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold text-sm shadow-md shadow-cyan-500/25 hover:opacity-90 transition-all hover:scale-[1.02]">
-                    Verify Claim
-                </a>
-            </div>
+            <div class="hidden md:flex items-center gap-4">
+                <a href="#demo" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold text-sm shadow-md shadow-cyan-500/25 hover:opacity-90 transition-all hover:scale-[1.02]">
+                    Verify Claim
+                </a>
+            </div>
 
-            <!-- Mobile Hamburger Button -->
-            <button id="menu-btn" aria-label="Toggle Menu" aria-expanded="false" class="md:hidden p-2 rounded-lg text-slate-300 hover:text-white focus:outline-none">
-                <svg id="hamburger-icon" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                </svg>
-                <svg id="close-icon" class="w-6 h-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-        </div>
+            <button id="menu-btn" aria-label="Toggle Menu" aria-expanded="false" class="md:hidden p-2 rounded-lg text-slate-300 hover:text-white focus:outline-none">
+                <svg id="hamburger-icon" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+                <svg id="close-icon" class="w-6 h-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
 
-        <!-- Mobile Drawer Navigation -->
-        <div id="mobile-menu" class="absolute top-20 left-0 w-full glass-panel border-b border-white/10 transition-transform duration-300 -translate-y-full -z-10 md:hidden flex flex-col p-6 gap-4">
-            <a href="#demo" class="mobile-nav-link text-slate-300 hover:text-cyan-400 font-medium text-lg">Live Desk</a>
-            <a href="#features" class="mobile-nav-link text-slate-300 hover:text-cyan-400 font-medium text-lg">Features</a>
-            <a href="#api" class="mobile-nav-link text-slate-300 hover:text-cyan-400 font-medium text-lg">API & Docs</a>
-            <a href="#faq" class="mobile-nav-link text-slate-300 hover:text-cyan-400 font-medium text-lg">FAQ</a>
-            <hr class="border-white/10 my-2">
-            <a href="#demo" class="mobile-nav-link w-full py-3 text-center rounded-xl bg-cyan-500 text-slate-950 font-bold">Verify Claim</a>
-        </div>
-    </header>
+        <div id="mobile-menu" class="absolute top-20 left-0 w-full glass-panel border-b border-white/10 transition-transform duration-300 -translate-y-full -z-10 md:hidden flex flex-col p-6 gap-4">
+            <a href="#demo" class="mobile-nav-link text-slate-300 hover:text-cyan-400 font-medium text-lg">Live Desk</a>
+            <a href="#features" class="mobile-nav-link text-slate-300 hover:text-cyan-400 font-medium text-lg">Features</a>
+            <a href="#api" class="mobile-nav-link text-slate-300 hover:text-cyan-400 font-medium text-lg">API & Docs</a>
+            <a href="#faq" class="mobile-nav-link text-slate-300 hover:text-cyan-400 font-medium text-lg">FAQ</a>
+            <hr class="border-white/10 my-2">
+            <a href="#demo" class="mobile-nav-link w-full py-3 text-center rounded-xl bg-cyan-500 text-slate-950 font-bold">Verify Claim</a>
+        </div>
+    </header>
 
-    <!-- ==================== HERO SECTION ==================== -->
-    <section class="relative pt-24 pb-20 px-6 lg:px-12 max-w-7xl mx-auto text-center">
-        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-300 text-xs font-mono uppercase tracking-widest mb-8">
-            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-            Real-Time Truth Engine 3.0
-        </div>
+    <!-- HERO SECTION -->
+    <section class="relative pt-24 pb-20 px-6 lg:px-12 max-w-7xl mx-auto text-center">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-300 text-xs font-mono uppercase tracking-widest mb-8">
+            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+            Real-Time Truth Engine 3.0
+        </div>
 
-        <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-[1.15] max-w-5xl mx-auto">
-            Decipher Fact from Fiction with <span class="bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400 bg-clip-text text-transparent">AI Precision.</span>
-        </h1>
+        <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-[1.15] max-w-5xl mx-auto">
+            Decipher Fact from Fiction with <span class="bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400 bg-clip-text text-transparent">AI Precision.</span>
+        </h1>
 
-        <p class="mt-6 text-slate-400 text-lg sm:text-xl max-w-3xl mx-auto font-normal leading-relaxed">
-            Verascope cross-checks claims, news articles, and media against thousands of primary sources, verified databases, and wire services in seconds.
-        </p>
+        <p class="mt-6 text-slate-400 text-lg sm:text-xl max-w-3xl mx-auto font-normal leading-relaxed">
+            Verascope cross-checks claims, news articles, and media against thousands of primary sources, verified databases, and wire services in seconds.
+        </p>
 
-        <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <a href="#demo" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold shadow-lg shadow-cyan-500/25 transition-all hover:-translate-y-0.5">
-                Start Live Verification
-            </a>
-            <a href="#api" class="w-full sm:w-auto px-8 py-4 rounded-xl border border-white/10 hover:bg-white/5 text-slate-200 font-semibold transition-all">
-                Explore API Docs
-            </a>
-        </div>
-    </section>
+        <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <a href="#demo" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold shadow-lg shadow-cyan-500/25 transition-all hover:-translate-y-0.5">
+                Start Live Verification
+            </a>
+            <a href="#api" class="w-full sm:w-auto px-8 py-4 rounded-xl border border-white/10 hover:bg-white/5 text-slate-200 font-semibold transition-all">
+                Explore API Docs
+            </a>
+        </div>
+    </section>
 
-    <!-- ==================== INTERACTIVE VERIFICATION DESK ==================== -->
-    <section id="demo" class="py-16 px-6 lg:px-12 max-w-5xl mx-auto">
-        <div class="glass-panel rounded-3xl p-6 sm:p-10 border border-white/10 shadow-2xl">
-            <!-- Header Tabs -->
-            <div class="flex items-center justify-between border-b border-white/10 pb-6 mb-6">
-                <div class="flex items-center gap-3">
-                    <button id="tab-text" onclick="switchTab('text')" class="px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-cyan-500/20 text-cyan-400 border border-cyan-500/40">
-                        Text Claim
-                    </button>
-                    <button id="tab-url" onclick="switchTab('url')" class="px-4 py-2 rounded-xl text-sm font-semibold transition-all text-slate-400 hover:text-white hover:bg-white/5 border border-transparent">
-                        URL Source
-                    </button>
-                </div>
-                <span class="text-xs font-mono text-slate-500 uppercase tracking-widest hidden sm:inline">Verification Desk</span>
-            </div>
+    <!-- INTERACTIVE VERIFICATION DESK -->
+    <section id="demo" class="py-16 px-6 lg:px-12 max-w-5xl mx-auto">
+        <div class="glass-panel rounded-3xl p-6 sm:p-10 border border-white/10 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-white/10 pb-6 mb-6">
+                <div class="flex items-center gap-3">
+                    <button id="tab-text" onclick="switchTab('text')" class="px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-cyan-500/20 text-cyan-400 border border-cyan-500/40">
+                        Text Claim
+                    </button>
+                    <button id="tab-url" onclick="switchTab('url')" class="px-4 py-2 rounded-xl text-sm font-semibold transition-all text-slate-400 hover:text-white hover:bg-white/5 border border-transparent">
+                        URL Source
+                    </button>
+                </div>
+                <span class="text-xs font-mono text-slate-500 uppercase tracking-widest hidden sm:inline">Verification Desk</span>
+            </div>
 
-            <!-- Tab 1: Text Input -->
-            <div id="view-text" class="space-y-4">
-                <textarea id="claim-text-input" rows="3" class="w-full bg-slate-900/90 border border-slate-800 rounded-2xl p-4 text-slate-200 text-sm focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 resize-none placeholder-slate-500 font-sans" placeholder="Paste a claim, sentence, or news statement to analyze..."></textarea>
-            </div>
+            <div id="view-text" class="space-y-4">
+                <textarea id="claim-text-input" rows="3" class="w-full bg-slate-900/90 border border-slate-800 rounded-2xl p-4 text-slate-200 text-sm focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 resize-none placeholder-slate-500 font-sans" placeholder="Paste a claim, sentence, or news statement to analyze..."></textarea>
+            </div>
 
-            <!-- Tab 2: URL Input (Hidden by default) -->
-            <div id="view-url" class="space-y-4 hidden">
-                <input type="url" id="claim-url-input" class="w-full bg-slate-900/90 border border-slate-800 rounded-2xl p-4 text-slate-200 text-sm focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 placeholder-slate-500 font-sans" placeholder="https://example.com/news-article-url">
-            </div>
+            <div id="view-url" class="space-y-4 hidden">
+                <input type="url" id="claim-url-input" class="w-full bg-slate-900/90 border border-slate-800 rounded-2xl p-4 text-slate-200 text-sm focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 placeholder-slate-500 font-sans" placeholder="https://example.com/news-article-url">
+            </div>
 
-            <!-- Action Button -->
-            <div class="mt-4 flex justify-end">
-                <button onclick="runVerification()" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 text-white font-semibold text-sm shadow-lg shadow-cyan-500/20 hover:opacity-95 transition-all">
-                    Run Analysis
-                </button>
-            </div>
+            <div class="mt-4 flex justify-end">
+                <button onclick="runVerification()" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 text-white font-semibold text-sm shadow-lg shadow-cyan-500/20 hover:opacity-95 transition-all">
+                    Run Analysis
+                </button>
+            </div>
 
-            <!-- Verification Output Panel (Always Visible) -->
-            <div id="verdict-box" class="mt-8 border-t border-white/10 pt-6 space-y-6">
-                <!-- Status Row -->
-                <div class="flex flex-wrap items-center justify-between gap-4">
-                    <div class="flex items-center gap-3">
-                        <span class="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-mono text-xs font-bold tracking-wide">
-                            VERDICT: REAL
-                        </span>
-                        <span class="text-slate-300 text-sm font-medium">96.4% Confidence Score</span>
-                    </div>
-                    <span class="text-cyan-400 text-sm font-medium hover:underline cursor-pointer">
-                        Cross-checked 14 Sources
-                    </span>
-                </div>
+            <div id="verdict-box" class="mt-8 border-t border-white/10 pt-6 space-y-6">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <span class="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-mono text-xs font-bold tracking-wide">
+                            VERDICT: REAL
+                        </span>
+                        <span class="text-slate-300 text-sm font-medium">96.4% Confidence Score</span>
+                    </div>
+                    <span class="text-cyan-400 text-sm font-medium hover:underline cursor-pointer">
+                        Cross-checked 14 Sources
+                    </span>
+                </div>
 
-                <!-- Analysis Summary -->
-                <p class="text-slate-200 text-sm leading-relaxed">
-                    <strong class="text-white">Analysis Summary:</strong> The core claims match official press statements and verified primary reports from major reputable wire services.
-                </p>
+                <p class="text-slate-200 text-sm leading-relaxed">
+                    <strong class="text-white">Analysis Summary:</strong> The core claims match official press statements and verified primary reports from major reputable wire services.
+                </p>
 
-                <!-- Interactive Consultation Bot Card -->
-                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 space-y-4">
-                    <div class="text-xs font-mono font-bold uppercase tracking-widest text-cyan-400">
-                        VERASCOPE CONSULTATION BOT
-                    </div>
-                    <p class="text-slate-400 text-xs">
-                        Have questions about this analysis? Ask follow-up details below:
-                    </p>
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 space-y-4">
+                    <div class="text-xs font-mono font-bold uppercase tracking-widest text-cyan-400">
+                        VERASCOPE CONSULTATION BOT
+                    </div>
+                    <p class="text-slate-400 text-xs">
+                        Have questions about this analysis? Ask follow-up details below:
+                    </p>
 
-                    <!-- Chat Messages Output Stream -->
-                    <div id="chat-messages" class="space-y-3 max-h-60 overflow-y-auto pr-1"></div>
+                    <div id="chat-messages" class="space-y-3 max-h-60 overflow-y-auto pr-1"></div>
 
-                    <!-- Input Bar -->
-                    <div class="flex items-center gap-2">
-                        <input type="text" id="bot-input" onkeypress="handleKeyPress(event)" placeholder="Ask a question..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/60 placeholder-slate-500 font-sans">
-                        <button onclick="askBot()" class="px-5 py-2.5 bg-slate-800 hover:bg-cyan-600 text-cyan-300 hover:text-white font-semibold text-sm rounded-xl border border-slate-700 transition-all">
-                            Ask
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="bot-input" onkeypress="handleKeyPress(event)" placeholder="Ask a question..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/60 placeholder-slate-500 font-sans">
+                        <button onclick="askBot()" class="px-5 py-2.5 bg-slate-800 hover:bg-cyan-600 text-cyan-300 hover:text-white font-semibold text-sm rounded-xl border border-slate-700 transition-all">
+                            Ask
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-    <!-- ==================== FEATURES SECTION ==================== -->
-    <section id="features" class="py-24 px-6 lg:px-12 max-w-7xl mx-auto">
-        <div class="text-center space-y-4 mb-16">
-            <span class="text-xs font-mono uppercase tracking-[0.25em] text-cyan-400">Engine Features</span>
-            <h2 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">Built for Truth & Speed</h2>
-        </div>
+    <!-- FEATURES SECTION -->
+    <section id="features" class="py-24 px-6 lg:px-12 max-w-7xl mx-auto">
+        <div class="text-center space-y-4 mb-16">
+            <span class="text-xs font-mono uppercase tracking-[0.25em] text-cyan-400">Engine Features</span>
+            <h2 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">Built for Truth & Speed</h2>
+        </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <!-- Feature 1 -->
-            <div class="glass-panel p-8 rounded-3xl border border-white/10 hover:border-cyan-500/30 transition-all">
-                <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-6">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-bold text-white mb-3">Sub-Second Processing</h3>
-                <p class="text-slate-400 text-sm leading-relaxed">
-                    Parallel LLM claim decomposing engine evaluates source integrity across global news feeds in under 800 milliseconds.
-                </p>
-            </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="glass-panel p-8 rounded-3xl border border-white/10 hover:border-cyan-500/30 transition-all">
+                <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-6">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-3">Sub-Second Processing</h3>
+                <p class="text-slate-400 text-sm leading-relaxed">
+                    Parallel LLM claim decomposing engine evaluates source integrity across global news feeds in under 800 milliseconds.
+                </p>
+            </div>
 
-            <!-- Feature 2 -->
-            <div class="glass-panel p-8 rounded-3xl border border-white/10 hover:border-cyan-500/30 transition-all">
-                <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-6">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-bold text-white mb-3">Primary Source Trace</h3>
-                <p class="text-slate-400 text-sm leading-relaxed">
-                    Tracks statements directly back to raw data repositories, official press releases, wire services, and peer-reviewed journals.
-                </p>
-            </div>
+            <div class="glass-panel p-8 rounded-3xl border border-white/10 hover:border-cyan-500/30 transition-all">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-6">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-3">Primary Source Trace</h3>
+                <p class="text-slate-400 text-sm leading-relaxed">
+                    Tracks statements directly back to raw data repositories, official press releases, wire services, and peer-reviewed journals.
+                </p>
+            </div>
 
-            <!-- Feature 3 -->
-            <div class="glass-panel p-8 rounded-3xl border border-white/10 hover:border-cyan-500/30 transition-all">
-                <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 mb-6">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-bold text-white mb-3">Bias & Emotion Metrics</h3>
-                <p class="text-slate-400 text-sm leading-relaxed">
-                    Evaluates sensationalism indices, emotional polarization, and linguistic markers to highlight sensational narrative spin.
-                </p>
-            </div>
-        </div>
-    </section>
+            <div class="glass-panel p-8 rounded-3xl border border-white/10 hover:border-cyan-500/30 transition-all">
+                <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 mb-6">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-3">Bias & Emotion Metrics</h3>
+                <p class="text-slate-400 text-sm leading-relaxed">
+                    Evaluates sensationalism indices, emotional polarization, and linguistic markers to highlight sensational narrative spin.
+                </p>
+            </div>
+        </div>
+    </section>
 
-    <!-- ==================== CODE & API SECTION ==================== -->
-    <section id="api" class="py-24 px-6 lg:px-12 max-w-7xl mx-auto border-t border-white/10">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div class="space-y-6">
-                <span class="text-xs font-mono uppercase tracking-[0.25em] text-cyan-400">Developer Access</span>
-                <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Integrate Fact-Checking via REST API</h2>
-                <p class="text-slate-400 text-sm leading-relaxed">
-                    Deploy Verascope analysis into your applications, content moderation systems, or editorial workflows with simple JSON responses and high rate limits.
-                </p>
-                <div class="flex items-center gap-4 text-xs font-mono text-slate-400">
-                    <span class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800">POST /v1/verify</span>
-                    <span class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800">Latency: ~180ms</span>
-                </div>
-            </div>
+    <!-- CODE & API SECTION -->
+    <section id="api" class="py-24 px-6 lg:px-12 max-w-7xl mx-auto border-t border-white/10">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div class="space-y-6">
+                <span class="text-xs font-mono uppercase tracking-[0.25em] text-cyan-400">Developer Access</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Integrate Fact-Checking via REST API</h2>
+                <p class="text-slate-400 text-sm leading-relaxed">
+                    Deploy Verascope analysis into your applications, content moderation systems, or editorial workflows with simple JSON responses and high rate limits.
+                </p>
+                <div class="flex items-center gap-4 text-xs font-mono text-slate-400">
+                    <span class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800">POST /v1/verify</span>
+                    <span class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800">Latency: ~180ms</span>
+                </div>
+            </div>
 
-            <div class="bg-slate-900/90 rounded-2xl p-6 border border-slate-800 font-mono text-xs leading-relaxed overflow-x-auto shadow-2xl">
+            <div class="bg-slate-900/90 rounded-2xl p-6 border border-slate-800 font-mono text-xs leading-relaxed overflow-x-auto shadow-2xl">
 <pre class="overflow-x-auto text-cyan-300"><code>{
-  <span class="text-purple-400">"status"</span>: <span class="text-emerald-400">"success"</span>,
-  <span class="text-purple-400">"confidence_score"</span>: <span class="text-orange-400">0.964</span>,
-  <span class="text-purple-400">"verdict"</span>: <span class="text-emerald-400">"VERIFIED_REAL"</span>,
-  <span class="text-purple-400">"claim_summary"</span>: <span class="text-emerald-400">"Cross-checked across primary wire services."</span>,
-  <span class="text-purple-400">"sources_analyzed"</span>: <span class="text-orange-400">14</span>,
-  <span class="text-purple-400">"bias_index"</span>: {
-    <span class="text-purple-400">"sensationalism"</span>: <span class="text-orange-400">0.04</span>,
-    <span class="text-purple-400">"emotional_polarity"</span>: <span class="text-emerald-400">"neutral"</span>
-  }
+  <span class="text-purple-400">"status"</span>: <span class="text-emerald-400">"success"</span>,
+  <span class="text-purple-400">"confidence_score"</span>: <span class="text-orange-400">0.964</span>,
+  <span class="text-purple-400">"verdict"</span>: <span class="text-emerald-400">"VERIFIED_REAL"</span>,
+  <span class="text-purple-400">"claim_summary"</span>: <span class="text-emerald-400">"Cross-checked across primary wire services."</span>,
+  <span class="text-purple-400">"sources_analyzed"</span>: <span class="text-orange-400">14</span>,
+  <span class="text-purple-400">"bias_index"</span>: {
+    <span class="text-purple-400">"sensationalism"</span>: <span class="text-orange-400">0.04</span>,
+    <span class="text-purple-400">"emotional_polarity"</span>: <span class="text-emerald-400">"neutral"</span>
+  }
 }</code></pre>
-            </div>
-        </div>
-    </section>
+            </div>
+        </div>
+    </section>
 
-    <!-- ==================== FAQ SECTION ==================== -->
-    <section id="faq" class="relative py-28 px-6 lg:px-12 border-t border-white/10">
-        <div class="max-w-4xl mx-auto">
-            <div class="text-center space-y-4 mb-16">
-                <span class="text-xs font-mono uppercase tracking-[0.25em] text-cyan-400">Frequently Asked Questions</span>
-                <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Understanding Verascope</h2>
-            </div>
+    <!-- FAQ SECTION -->
+    <section id="faq" class="relative py-28 px-6 lg:px-12 border-t border-white/10">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center space-y-4 mb-16">
+                <span class="text-xs font-mono uppercase tracking-[0.25em] text-cyan-400">Frequently Asked Questions</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Understanding Verascope</h2>
+            </div>
 
-            <div class="space-y-4">
-                <!-- FAQ Item 1 -->
-                <div class="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden">
-                    <button onclick="toggleFaq(1)" class="w-full flex items-center justify-between p-6 text-left font-semibold text-white focus:outline-none" aria-expanded="false" id="faq-btn-1">
-                        <span>How does Verascope verify news claims so quickly?</span>
-                        <svg id="faq-icon-1" class="w-5 h-5 text-cyan-400 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                    </button>
-                    <div id="faq-ans-1" class="faq-answer px-6 pb-0 text-sm text-slate-400 leading-relaxed">
-                        <div class="pb-6">
-                            Verascope utilizes a multi-threaded parallel processing pipeline. When input is received, our LLMs parse the text into core claim components, simultaneously querying cross-referenced databases, news agency archives, and official statements in under two seconds.
-                        </div>
-                    </div>
-                </div>
+            <div class="space-y-4">
+                <div class="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden">
+                    <button onclick="toggleFaq(1)" class="w-full flex items-center justify-between p-6 text-left font-semibold text-white focus:outline-none" aria-expanded="false" id="faq-btn-1">
+                        <span>How does Verascope verify news claims so quickly?</span>
+                        <svg id="faq-icon-1" class="w-5 h-5 text-cyan-400 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div id="faq-ans-1" class="faq-answer px-6 pb-0 text-sm text-slate-400 leading-relaxed">
+                        <div class="pb-6">
+                            Verascope utilizes a multi-threaded parallel processing pipeline. When input is received, our LLMs parse the text into core claim components, simultaneously querying cross-referenced databases, news agency archives, and official statements in under two seconds.
+                        </div>
+                    </div>
+                </div>
 
-                <!-- FAQ Item 2 -->
-                <div class="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden">
-                    <button onclick="toggleFaq(2)" class="w-full flex items-center justify-between p-6 text-left font-semibold text-white focus:outline-none" aria-expanded="false" id="faq-btn-2">
-                        <span>Can Verascope detect AI-generated media and deepfakes?</span>
-                        <svg id="faq-icon-2" class="w-5 h-5 text-cyan-400 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                    </button>
-                    <div id="faq-ans-2" class="faq-answer px-6 pb-0 text-sm text-slate-400 leading-relaxed">
-                        <div class="pb-6">
-                            Yes. Verascope checks syntactic text patterns and image artifacts associated with synthetic media generators to detect both AI-generated text passages and manipulated imagery.
-                        </div>
-                    </div>
-                </div>
+                <div class="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden">
+                    <button onclick="toggleFaq(2)" class="w-full flex items-center justify-between p-6 text-left font-semibold text-white focus:outline-none" aria-expanded="false" id="faq-btn-2">
+                        <span>Can Verascope detect AI-generated media and deepfakes?</span>
+                        <svg id="faq-icon-2" class="w-5 h-5 text-cyan-400 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div id="faq-ans-2" class="faq-answer px-6 pb-0 text-sm text-slate-400 leading-relaxed">
+                        <div class="pb-6">
+                            Yes. Verascope checks syntactic text patterns and image artifacts associated with synthetic media generators to detect both AI-generated text passages and manipulated imagery.
+                        </div>
+                    </div>
+                </div>
 
-                <!-- FAQ Item 3 -->
-                <div class="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden">
-                    <button onclick="toggleFaq(3)" class="w-full flex items-center justify-between p-6 text-left font-semibold text-white focus:outline-none" aria-expanded="false" id="faq-btn-3">
-                        <span>Is Verascope politically unbiased?</span>
-                        <svg id="faq-icon-3" class="w-5 h-5 text-cyan-400 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                    </button>
-                    <div id="faq-ans-3" class="faq-answer px-6 pb-0 text-sm text-slate-400 leading-relaxed">
-                        <div class="pb-6">
-                            Our algorithm evaluates factual claims against primary, verifiable documentation and raw datasets rather than commentary or opinion pieces, keeping bias scores low and transparency high.
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+                <div class="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden">
+                    <button onclick="toggleFaq(3)" class="w-full flex items-center justify-between p-6 text-left font-semibold text-white focus:outline-none" aria-expanded="false" id="faq-btn-3">
+                        <span>Is Verascope politically unbiased?</span>
+                        <svg id="faq-icon-3" class="w-5 h-5 text-cyan-400 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div id="faq-ans-3" class="faq-answer px-6 pb-0 text-sm text-slate-400 leading-relaxed">
+                        <div class="pb-6">
+                            Our algorithm evaluates factual claims against primary, verifiable documentation and raw datasets rather than commentary or opinion pieces, keeping bias scores low and transparency high.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-    <!-- ==================== FOOTER ==================== -->
-    <footer class="border-t border-white/10 bg-slate-950 py-12 px-6 lg:px-12 text-slate-400 text-sm">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-            <div class="flex items-center gap-3">
-                <span class="tracking-[0.2em] font-extrabold text-lg text-white">VERASCOPE</span>
-                <span class="text-xs text-slate-500 font-mono">© 2026 Verascope AI, Inc. All rights reserved.</span>
-            </div>
+    <!-- FOOTER -->
+    <footer class="border-t border-white/10 bg-slate-950 py-12 px-6 lg:px-12 text-slate-400 text-sm">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-center gap-3">
+                <span class="tracking-[0.2em] font-extrabold text-lg text-white">VERASCOPE</span>
+                <span class="text-xs text-slate-500 font-mono">© 2026 Verascope AI, Inc. All rights reserved.</span>
+            </div>
 
-            <div class="flex items-center gap-6 text-xs font-medium">
-                <a href="#" class="hover:text-cyan-400 transition-colors">Privacy Policy</a>
-                <a href="#" class="hover:text-cyan-400 transition-colors">Terms of Service</a>
-                <a href="#" class="hover:text-cyan-400 transition-colors">Security Audit</a>
-                <a href="#" class="hover:text-cyan-400 transition-colors">Contact Support</a>
-            </div>
-        </div>
-    </footer>
+            <div class="flex items-center gap-6 text-xs font-medium">
+                <a href="#" class="hover:text-cyan-400 transition-colors">Privacy Policy</a>
+                <a href="#" class="hover:text-cyan-400 transition-colors">Terms of Service</a>
+                <a href="#" class="hover:text-cyan-400 transition-colors">Security Audit</a>
+                <a href="#" class="hover:text-cyan-400 transition-colors">Contact Support</a>
+            </div>
+        </div>
+    </footer>
 
-    <!-- ==================== JAVASCRIPT INTERACTIVITY ==================== -->
-    <script>
-        // Utility to escape HTML to prevent XSS
-        function escapeHTML(str) {
-            return str.replace(/[&<>'"]/g, 
-                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-            );
-        }
+    <!-- JAVASCRIPT -->
+    <script>
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
 
-        // Mobile Navigation Toggle
-        const menuBtn = document.getElementById('menu-btn');
-        const mobileMenu = document.getElementById('mobile-menu');
-        const hamburgerIcon = document.getElementById('hamburger-icon');
-        const closeIcon = document.getElementById('close-icon');
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const hamburgerIcon = document.getElementById('hamburger-icon');
+        const closeIcon = document.getElementById('close-icon');
 
-        menuBtn.addEventListener('click', () => {
-            const isOpen = mobileMenu.classList.contains('translate-y-0');
-            if (isOpen) {
-                mobileMenu.classList.remove('translate-y-0');
-                mobileMenu.classList.add('-translate-y-full');
-                hamburgerIcon.classList.remove('hidden');
-                closeIcon.classList.add('hidden');
-                menuBtn.setAttribute('aria-expanded', 'false');
-            } else {
-                mobileMenu.classList.remove('-translate-y-full');
-                mobileMenu.classList.add('translate-y-0');
-                hamburgerIcon.classList.add('hidden');
-                closeIcon.classList.remove('hidden');
-                menuBtn.setAttribute('aria-expanded', 'true');
-            }
-        });
+        menuBtn.addEventListener('click', () => {
+            const isOpen = mobileMenu.classList.contains('translate-y-0');
+            if (isOpen) {
+                mobileMenu.classList.remove('translate-y-0');
+                mobileMenu.classList.add('-translate-y-full');
+                hamburgerIcon.classList.remove('hidden');
+                closeIcon.classList.add('hidden');
+                menuBtn.setAttribute('aria-expanded', 'false');
+            } else {
+                mobileMenu.classList.remove('-translate-y-full');
+                mobileMenu.classList.add('translate-y-0');
+                hamburgerIcon.classList.add('hidden');
+                closeIcon.classList.remove('hidden');
+                menuBtn.setAttribute('aria-expanded', 'true');
+            }
+        });
 
-        document.querySelectorAll('.mobile-nav-link').forEach(link => {
-            link.addEventListener('click', () => {
-                mobileMenu.classList.remove('translate-y-0');
-                mobileMenu.classList.add('-translate-y-full');
-                hamburgerIcon.classList.remove('hidden');
-                closeIcon.classList.add('hidden');
-                menuBtn.setAttribute('aria-expanded', 'false');
-            });
-        });
+        document.querySelectorAll('.mobile-nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('translate-y-0');
+                mobileMenu.classList.add('-translate-y-full');
+                hamburgerIcon.classList.remove('hidden');
+                closeIcon.classList.add('hidden');
+                menuBtn.setAttribute('aria-expanded', 'false');
+            });
+        });
 
-        // Tab Switcher for Verification Desk
-        function switchTab(mode) {
-            const tabText = document.getElementById('tab-text');
-            const tabUrl = document.getElementById('tab-url');
-            const viewText = document.getElementById('view-text');
-            const viewUrl = document.getElementById('view-url');
+        function switchTab(mode) {
+            const tabText = document.getElementById('tab-text');
+            const tabUrl = document.getElementById('tab-url');
+            const viewText = document.getElementById('view-text');
+            const viewUrl = document.getElementById('view-url');
 
-            if (mode === 'text') {
-                tabText.className = 'px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-cyan-500/20 text-cyan-400 border border-cyan-500/40';
-                tabUrl.className = 'px-4 py-2 rounded-xl text-sm font-semibold transition-all text-slate-400 hover:text-white hover:bg-white/5 border border-transparent';
-                viewText.classList.remove('hidden');
-                viewUrl.classList.add('hidden');
-            } else {
-                tabUrl.className = 'px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-cyan-500/20 text-cyan-400 border border-cyan-500/40';
-                tabText.className = 'px-4 py-2 rounded-xl text-sm font-semibold transition-all text-slate-400 hover:text-white hover:bg-white/5 border border-transparent';
-                viewUrl.classList.remove('hidden');
-                viewText.classList.add('hidden');
-            }
-        }
+            if (mode === 'text') {
+                tabText.className = 'px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-cyan-500/20 text-cyan-400 border border-cyan-500/40';
+                tabUrl.className = 'px-4 py-2 rounded-xl text-sm font-semibold transition-all text-slate-400 hover:text-white hover:bg-white/5 border border-transparent';
+                viewText.classList.remove('hidden');
+                viewUrl.classList.add('hidden');
+            } else {
+                tabUrl.className = 'px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-cyan-500/20 text-cyan-400 border border-cyan-500/40';
+                tabText.className = 'px-4 py-2 rounded-xl text-sm font-semibold transition-all text-slate-400 hover:text-white hover:bg-white/5 border border-transparent';
+                viewUrl.classList.remove('hidden');
+                viewText.classList.add('hidden');
+            }
+        }
 
-        // Run Main Analysis Button Action
-        function runVerification() {
-            const verdictBox = document.getElementById('verdict-box');
-            verdictBox.scrollIntoView({ behavior: 'smooth' });
-        }
+        function runVerification() {
+            const verdictBox = document.getElementById('verdict-box');
+            verdictBox.scrollIntoView({ behavior: 'smooth' });
+        }
 
-        // Handle ENTER Key inside Bot Input
-        function handleKeyPress(e) {
-            if (e.key === 'Enter') {
-                askBot();
-            }
-        }
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') {
+                askBot();
+            }
+        }
 
-        // Verascope Consultation Bot Interactive Logic
-        function askBot() {
-            const inputEl = document.getElementById('bot-input');
-            const chatContainer = document.getElementById('chat-messages');
-            const rawText = inputEl.value.trim();
+        function askBot() {
+            const inputEl = document.getElementById('bot-input');
+            const chatContainer = document.getElementById('chat-messages');
+            const rawText = inputEl.value.trim();
 
-            if (!rawText) return;
+            if (!rawText) return;
 
-            const userText = escapeHTML(rawText);
+            const userText = escapeHTML(rawText);
 
-            // Render User Message
-            const userMsgHtml = `
-                <div class="flex justify-end">
-                    <div class="bg-cyan-600/30 border border-cyan-500/40 text-cyan-200 text-xs px-3 py-2 rounded-xl max-w-[85%] break-words">
-                        ${userText}
-                    </div>
-                </div>
-            `;
-            chatContainer.insertAdjacentHTML('beforeend', userMsgHtml);
-            inputEl.value = '';
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+            const userMsgHtml = `
+                <div class="flex justify-end">
+                    <div class="bg-cyan-600/30 border border-cyan-500/40 text-cyan-200 text-xs px-3 py-2 rounded-xl max-w-[85%] break-words">
+                        ${userText}
+                    </div>
+                </div>
+            `;
+            chatContainer.insertAdjacentHTML('beforeend', userMsgHtml);
+            inputEl.value = '';
+            chatContainer.scrollTop = chatContainer.scrollHeight;
 
-            // Generate Automated AI Response
-            setTimeout(() => {
-                let botReply = "Hello! I can provide additional context, source breakdowns, or bias metrics regarding this analysis result. What specific claim details would you like to explore?";
-                
-                const lower = rawText.toLowerCase();
-                if (lower.includes('hi') || lower.includes('hello') || lower.includes('hey')) {
-                    botReply = "Hello! Feel free to ask about the 14 cross-checked sources, methodology, or specific parts of this claim analysis.";
-                } else if (lower.includes('source') || lower.includes('where')) {
-                    botReply = "Sources include Reuters, AP News, official agency wire statements, and verified digital transcripts.";
-                } else if (lower.includes('accuracy') || lower.includes('confidence') || lower.includes('score')) {
-                    botReply = "The 96.4% confidence score is generated based on direct textual correlation and source domain authority ratings.";
-                }
+            setTimeout(() => {
+                let botReply = "Hello! I can provide additional context, source breakdowns, or bias metrics regarding this analysis result. What specific claim details would you like to explore?";
+                
+                const lower = rawText.toLowerCase();
+                if (lower.includes('hi') || lower.includes('hello') || lower.includes('hey')) {
+                    botReply = "Hello! Feel free to ask about the 14 cross-checked sources, methodology, or specific parts of this claim analysis.";
+                } else if (lower.includes('source') || lower.includes('where')) {
+                    botReply = "Sources include Reuters, AP News, official agency wire statements, and verified digital transcripts.";
+                } else if (lower.includes('accuracy') || lower.includes('confidence') || lower.includes('score')) {
+                    botReply = "The 96.4% confidence score is generated based on direct textual correlation and source domain authority ratings.";
+                }
 
-                const botMsgHtml = `
-                    <div class="flex justify-start">
-                        <div class="bg-slate-800/90 border border-slate-700 text-slate-300 text-xs px-3 py-2.5 rounded-xl max-w-[85%] leading-relaxed">
-                            <span class="text-cyan-400 font-semibold block mb-1">Verascope Bot:</span>
-                            ${botReply}
-                        </div>
-                    </div>
-                `;
-                chatContainer.insertAdjacentHTML('beforeend', botMsgHtml);
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            }, 400);
-        }
+                const botMsgHtml = `
+                    <div class="flex justify-start">
+                        <div class="bg-slate-800/90 border border-slate-700 text-slate-300 text-xs px-3 py-2.5 rounded-xl max-w-[85%] leading-relaxed">
+                            <span class="text-cyan-400 font-semibold block mb-1">Verascope Bot:</span>
+                            ${botReply}
+                        </div>
+                    </div>
+                `;
+                chatContainer.insertAdjacentHTML('beforeend', botMsgHtml);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 400);
+        }
 
-        // FAQ Accordion Toggle with dynamic scrollHeight transition
-        function toggleFaq(id) {
-            const ans = document.getElementById(`faq-ans-${id}`);
-            const icon = document.getElementById(`faq-icon-${id}`);
-            const btn = document.getElementById(`faq-btn-${id}`);
-            
-            const isOpen = ans.style.maxHeight && ans.style.maxHeight !== '0px';
+        function toggleFaq(id) {
+            const ans = document.getElementById(`faq-ans-${id}`);
+            const icon = document.getElementById(`faq-icon-${id}`);
+            const btn = document.getElementById(`faq-btn-${id}`);
+            
+            const isOpen = ans.style.maxHeight && ans.style.maxHeight !== '0px';
 
-            // Close all items
-            document.querySelectorAll('.faq-answer').forEach(el => {
-                el.style.maxHeight = '0px';
-            });
-            document.querySelectorAll('[id^="faq-icon-"]').forEach(el => {
-                el.classList.remove('rotate-180');
-            });
-            document.querySelectorAll('[id^="faq-btn-"]').forEach(el => {
-                el.setAttribute('aria-expanded', 'false');
-            });
+            document.querySelectorAll('.faq-answer').forEach(el => {
+                el.style.maxHeight = '0px';
+            });
+            document.querySelectorAll('[id^="faq-icon-"]').forEach(el => {
+                el.classList.remove('rotate-180');
+            });
+            document.querySelectorAll('[id^="faq-btn-"]').forEach(el => {
+                el.setAttribute('aria-expanded', 'false');
+            });
 
-            // Open clicked item if it was closed
-            if (!isOpen) {
-                ans.style.maxHeight = ans.scrollHeight + 'px';
-                icon.classList.add('rotate-180');
-                btn.setAttribute('aria-expanded', 'true');
-            }
-        }
-    </script>
+            if (!isOpen) {
+                ans.style.maxHeight = ans.scrollHeight + 'px';
+                icon.classList.add('rotate-180');
+                btn.setAttribute('aria-expanded', 'true');
+            }
+        }
+    </script>
 </body>
 </html>
-
-in this 
