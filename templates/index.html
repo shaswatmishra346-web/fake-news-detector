@@ -1,1025 +1,407 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VERASCOPE — News Verification Desk</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,500&family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --ink: #0b1220;
-    --ink-2: #121b30;
-    --ink-3: #1a2540;
-    --paper: #efe4c8;
-    --paper-2: #e6d9b8;
-    --red: #c1372b;
-    --green: #2f7d5b;
-    --amber: #e2a33b;
-    --text: #e8e6df;
-    --text-dim: #94a0ba;
-    --line: rgba(232,230,223,0.14);
-  }
-
-  * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-
-  body {
-    margin: 0;
-    background: var(--ink);
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
-    line-height: 1.5;
-    position: relative;
-  }
-
-  /* ambient grain */
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 1;
-    opacity: 0.035;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-
-  h1, h2, h3 { font-family: 'Newsreader', serif; margin: 0; }
-  .mono { font-family: 'JetBrains Mono', monospace; }
-
-  .wrap {
-    max-width: 1080px;
-    margin: 0 auto;
-    padding: 0 28px;
-    position: relative;
-    z-index: 2;
-  }
-
-  /* ---------- NAV ---------- */
-  nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 26px 0;
-    border-bottom: 1px solid var(--line);
-  }
-  .brand {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-  }
-  .brand-mark {
-    width: 10px; height: 10px;
-    background: var(--red);
-    display: inline-block;
-    border-radius: 1px;
-    transform: rotate(45deg);
-  }
-  .brand-name {
-    font-family: 'Newsreader', serif;
-    font-size: 1.4rem;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-  }
-  .brand-tag {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--text-dim);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-  .case-ticker {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.75rem;
-    color: var(--text-dim);
-    letter-spacing: 0.5px;
-  }
-  .case-ticker span { color: var(--amber); }
-
-  /* ---------- HERO ---------- */
-  .hero {
-    padding: 74px 0 40px;
-  }
-  .eyebrow {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.78rem;
-    color: var(--amber);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 22px;
-  }
-  .eyebrow::before {
-    content: "";
-    width: 26px; height: 1px;
-    background: var(--amber);
-    display: inline-block;
-  }
-  .hero h1 {
-    font-size: clamp(2.4rem, 5vw, 3.6rem);
-    font-weight: 600;
-    line-height: 1.08;
-    max-width: 760px;
-    letter-spacing: -0.5px;
-  }
-  .hero h1 em {
-    font-style: italic;
-    color: var(--paper);
-  }
-  .hero p.sub {
-    margin-top: 20px;
-    font-size: 1.08rem;
-    color: var(--text-dim);
-    max-width: 560px;
-  }
-
-  /* ---------- CASE FILE (FOLDER) ---------- */
-  .case-file {
-    margin-top: 46px;
-    background: var(--paper);
-    color: #241d10;
-    border-radius: 3px;
-    position: relative;
-    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.06);
-  }
-  .case-file::before {
-    content: "";
-    position: absolute;
-    top: -10px; left: 32px;
-    width: 64px; height: 22px;
-    background: var(--paper-2);
-    border-radius: 3px 3px 0 0;
-  }
-  .case-file-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 22px 28px 16px;
-    border-bottom: 1px dashed rgba(36,29,16,0.25);
-  }
-  .case-file-header .label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: #6b5c34;
-  }
-  .tabs {
-    display: flex;
-    gap: 4px;
-    background: rgba(36,29,16,0.07);
-    padding: 4px;
-    border-radius: 6px;
-  }
-  .tab-btn {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.75rem;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    padding: 8px 14px;
-    border: none;
-    background: transparent;
-    border-radius: 4px;
-    cursor: pointer;
-    color: #6b5c34;
-    transition: all 0.15s ease;
-  }
-  .tab-btn.active {
-    background: #241d10;
-    color: var(--paper);
-  }
-
-  .case-file-body { padding: 26px 28px 28px; }
-
-  textarea, input[type="url"] {
-    width: 100%;
-    background: rgba(255,255,255,0.5);
-    border: 1px solid rgba(36,29,16,0.2);
-    border-radius: 6px;
-    padding: 14px 16px;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.95rem;
-    color: #241d10;
-    resize: vertical;
-    outline: none;
-  }
-  textarea::placeholder, input::placeholder { color: rgba(36,29,16,0.42); }
-  textarea:focus, input:focus { border-color: #241d10; }
-
-  .panel { display: none; }
-  .panel.active { display: block; }
-
-  .run-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 16px;
-  }
-  .hint {
-    font-size: 0.8rem;
-    color: rgba(36,29,16,0.55);
-  }
-  button.run {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.8rem;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    background: #241d10;
-    color: var(--paper);
-    border: none;
-    padding: 13px 24px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: transform 0.12s ease;
-  }
-  button.run:hover { transform: translateY(-1px); }
-  button.run:active { transform: translateY(0); }
-  button.run:disabled { opacity: 0.5; cursor: default; }
-
-  .msg {
-    margin-top: 14px;
-    font-size: 0.85rem;
-    padding: 10px 14px;
-    border-radius: 6px;
-    display: none;
-  }
-  .msg.warn { background: rgba(226,163,59,0.18); color: #7a5417; display: block; }
-  .msg.err { background: rgba(193,55,43,0.14); color: #8c281e; display: block; }
-
-  .extract-preview {
-    margin-top: 16px;
-    font-size: 0.82rem;
-    color: #4a4023;
-    background: rgba(36,29,16,0.05);
-    border-radius: 6px;
-    padding: 12px 14px;
-    max-height: 140px;
-    overflow-y: auto;
-  }
-  .extract-preview strong { display: block; margin-bottom: 6px; color: #241d10; }
-
-  /* ---------- VERDICT & ANALYTICS STAMP ---------- */
-  .verdict-zone {
-    margin-top: 22px;
-    min-height: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  .stamp-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-  }
-  .stamp {
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 600;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    padding: 16px 30px;
-    border: 4px double currentColor;
-    border-radius: 6px;
-    text-align: center;
-    animation: stampFall 0.5s cubic-bezier(.2,1.4,.4,1) both;
-  }
-  .stamp.real { color: var(--green); }
-  .stamp.fake { color: var(--red); }
-  .stamp .conf {
-    display: block;
-    font-size: 0.7rem;
-    font-weight: 400;
-    letter-spacing: 1px;
-    margin-top: 4px;
-    opacity: 0.75;
-  }
-  @keyframes stampFall {
-    0% { transform: scale(2.2) rotate(-14deg); opacity: 0; }
-    55% { transform: scale(0.92) rotate(-7deg); opacity: 1; }
-    75% { transform: scale(1.04) rotate(-9deg); }
-    100% { transform: scale(1) rotate(-8deg); opacity: 1; }
-  }
-
-  /* Metric Breakdown Panel */
-  .metrics-breakdown {
-    margin-top: 28px;
-    width: 100%;
-    max-width: 520px;
-    background: rgba(36,29,16,0.04);
-    border: 1px solid rgba(36,29,16,0.12);
-    border-radius: 6px;
-    padding: 18px 20px;
-  }
-  .metrics-title {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: #6b5c34;
-    margin-bottom: 14px;
-    text-align: center;
-  }
-  .metric-item {
-    margin-bottom: 12px;
-  }
-  .metric-item:last-child { margin-bottom: 0; }
-  .metric-label-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.78rem;
-    font-weight: 500;
-    margin-bottom: 4px;
-    color: #241d10;
-  }
-  .metric-bar-bg {
-    height: 6px;
-    background: rgba(36,29,16,0.12);
-    border-radius: 3px;
-    overflow: hidden;
-  }
-  .metric-bar-fill {
-    height: 100%;
-    background: #241d10;
-    border-radius: 3px;
-    transition: width 0.8s ease-out;
-  }
-
-  /* Action Buttons (Share / Export) */
-  .case-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 18px;
-  }
-  .action-btn {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    background: transparent;
-    border: 1px solid rgba(36,29,16,0.3);
-    color: #241d10;
-    padding: 7px 14px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background 0.15s ease;
-  }
-  .action-btn:hover { background: rgba(36,29,16,0.08); }
-
-  /* ---------- CHATBOT PANEL ---------- */
-  .chat-panel {
-    margin-top: 24px;
-    border-top: 1px dashed rgba(36,29,16,0.25);
-    padding-top: 22px;
-  }
-  .chat-panel-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-  }
-  .chat-panel-header .label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: #6b5c34;
-  }
-  .chat-clear-btn {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    background: transparent;
-    border: 1px solid rgba(36,29,16,0.25);
-    color: #6b5c34;
-    border-radius: 4px;
-    padding: 6px 10px;
-    cursor: pointer;
-  }
-  .chat-clear-btn:hover { background: rgba(36,29,16,0.06); }
-
-  .chat-history {
-    max-height: 300px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 4px 2px;
-    margin-bottom: 12px;
-  }
-  .chat-msg {
-    max-width: 85%;
-    padding: 10px 13px;
-    border-radius: 6px;
-    font-size: 0.88rem;
-    line-height: 1.5;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-  }
-  .chat-msg-user {
-    align-self: flex-end;
-    background: #241d10;
-    color: var(--paper);
-  }
-  .chat-msg-bot {
-    align-self: flex-start;
-    background: rgba(255,255,255,0.6);
-    border: 1px solid rgba(36,29,16,0.15);
-    color: #241d10;
-  }
-  .chat-msg-system {
-    align-self: center;
-    color: rgba(36,29,16,0.55);
-    font-size: 0.78rem;
-    font-style: italic;
-  }
-  .chat-loading::after {
-    content: '';
-    animation: chatDots 1.2s steps(4, end) infinite;
-  }
-  @keyframes chatDots {
-    0%   { content: ''; }
-    25%  { content: '.'; }
-    50%  { content: '..'; }
-    75%  { content: '...'; }
-    100% { content: ''; }
-  }
-
-  .chat-inputrow {
-    display: flex;
-    gap: 8px;
-    align-items: flex-end;
-  }
-  .chat-inputrow textarea {
-    flex: 1;
-    min-height: 44px;
-    max-height: 120px;
-    overflow-y: auto;
-  }
-  .chat-send-btn {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.78rem;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    background: #241d10;
-    color: var(--paper);
-    border: none;
-    padding: 0 20px;
-    height: 44px;
-    border-radius: 6px;
-    cursor: pointer;
-    white-space: nowrap;
-  }
-  .chat-send-btn:hover { opacity: 0.9; }
-  .chat-send-btn:disabled { opacity: 0.5; cursor: default; }
-
-  /* ---------- HOW IT WORKS ---------- */
-  .section { padding: 90px 0; border-top: 1px solid var(--line); }
-  .section-head { max-width: 560px; margin-bottom: 52px; }
-  .section-head .eyebrow { margin-bottom: 14px; }
-  .section-head h2 { font-size: clamp(1.8rem, 3vw, 2.3rem); font-weight: 600; }
-
-  .steps {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 36px;
-  }
-  .step .num {
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--amber);
-    font-size: 0.85rem;
-    letter-spacing: 1px;
-  }
-  .step h3 {
-    font-size: 1.2rem;
-    font-weight: 500;
-    margin: 14px 0 10px;
-    font-family: 'Newsreader', serif;
-    font-style: italic;
-  }
-  .step p { color: var(--text-dim); font-size: 0.92rem; }
-
-  /* ---------- DOMAINS ---------- */
-  .domain-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-  }
-  .domain-tab {
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 20px;
-    background: var(--ink-2);
-    position: relative;
-  }
-  .domain-tab::before {
-    content: attr(data-code);
-    position: absolute;
-    top: 12px; right: 14px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    color: var(--text-dim);
-    letter-spacing: 1px;
-  }
-  .domain-tab h4 {
-    font-family: 'Newsreader', serif;
-    font-size: 1.05rem;
-    font-weight: 600;
-    margin: 0 0 6px;
-  }
-  .domain-tab p { font-size: 0.85rem; color: var(--text-dim); margin: 0; }
-
-  /* ---------- TRUST NOTICE ---------- */
-  .notice {
-    background: var(--ink-3);
-    border: 1px solid rgba(226,163,59,0.3);
-    border-radius: 10px;
-    padding: 32px;
-    display: flex;
-    gap: 22px;
-    align-items: flex-start;
-  }
-  .notice .stamp-mark {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 1.5px;
-    color: var(--amber);
-    border: 2px solid var(--amber);
-    border-radius: 6px;
-    padding: 8px 12px;
-    white-space: nowrap;
-    transform: rotate(-6deg);
-  }
-  .notice p { margin: 0; color: var(--text-dim); font-size: 0.92rem; }
-  .notice p + p { margin-top: 10px; }
-  .notice strong { color: var(--text); }
-
-  /* ---------- FOOTER ---------- */
-  footer {
-    border-top: 1px solid var(--line);
-    padding: 40px 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: var(--text-dim);
-    font-size: 0.82rem;
-  }
-
-  @media (max-width: 760px) {
-    .steps, .domain-grid { grid-template-columns: 1fr; }
-    .notice { flex-direction: column; }
-    nav { flex-direction: column; gap: 10px; align-items: flex-start; }
-    .case-actions { flex-direction: column; width: 100%; }
-    .action-btn { width: 100%; text-align: center; }
-  }
-
-  :focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
-
-  @media (prefers-reduced-motion: reduce) {
-    .stamp { animation: none; }
-    html { scroll-behavior: auto; }
-  }
-</style>
-</head>
-<body>
-
-<div class="wrap">
-  <nav>
-    <div class="brand">
-      <span class="brand-mark"></span>
-      <span class="brand-name">VERASCOPE</span>
-      <span class="brand-tag">// verification desk</span>
-    </div>
-    <div class="case-ticker">CASE FILE NO. <span id="caseNumber">2026-000001</span></div>
-  </nav>
-
-  <section class="hero">
-    <p class="eyebrow">news verification, on demand</p>
-    <h1>Every headline<br>deserves <em>a case file.</em></h1>
-    <p class="sub">Paste an article or drop a link. VERASCOPE cross-examines the text against its training and stamps a verdict — in seconds, not hours.</p>
-
-    <div class="case-file">
-      <div class="case-file-header">
-        <span class="label">Evidence Intake</span>
-        <div class="tabs">
-          <button class="tab-btn active" data-tab="text">Paste Text</button>
-          <button class="tab-btn" data-tab="url">Paste URL</button>
-        </div>
-      </div>
-      <div class="case-file-body">
-
-        <div class="panel active" id="panel-text">
-          <textarea id="textInput" rows="6" placeholder="Paste headline, excerpt, or full article text here..."></textarea>
-          <div class="run-row">
-            <span class="hint">Accepts input of any length.</span>
-            <button class="run" id="runText">Open Case →</button>
-          </div>
-        </div>
-
-        <div class="panel" id="panel-url">
-          <input type="url" id="urlInput" placeholder="https://example.com/news/some-article">
-          <div class="run-row">
-            <span class="hint">We'll fetch and read the article for you.</span>
-            <button class="run" id="runUrl">Fetch &amp; Examine →</button>
-          </div>
-        </div>
-
-        <div class="msg" id="msgBox"></div>
-        <div class="extract-preview" id="extractPreview" style="display:none;">
-          <strong id="extractTitle"></strong>
-          <span id="extractText"></span>
-        </div>
-
-        <!-- Accessible Live Verdict Zone -->
-        <div class="verdict-zone" id="verdictZone" aria-live="polite"></div>
-
-        <!-- CHATBOT: Case Consultation panel -->
-        <div class="chat-panel" id="chatPanel" style="display:none;">
-          <div class="chat-panel-header">
-            <span class="label">Case Consultation — Ask VERASCOPE</span>
-            <button class="chat-clear-btn" id="chatClear" type="button">Clear chat</button>
-          </div>
-          <div class="chat-history" id="chatHistory" aria-live="polite"></div>
-          <div class="chat-inputrow">
-            <textarea id="chatInput" rows="1" placeholder="Ask why, request a summary, or ask how to verify this..."></textarea>
-            <button class="chat-send-btn" id="chatSend" type="button">Send</button>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="how">
-    <div class="section-head">
-      <p class="eyebrow">the process</p>
-      <h2>How the examination works</h2>
-    </div>
-    <div class="steps">
-      <div class="step">
-        <span class="num">01</span>
-        <h3>Submit evidence</h3>
-        <p>Paste the article body directly, or hand over a URL — VERASCOPE extracts the readable text for you.</p>
-      </div>
-      <div class="step">
-        <span class="num">02</span>
-        <h3>Run the analysis</h3>
-        <p>The text is converted into features and weighed against patterns learned from thousands of labeled articles.</p>
-      </div>
-      <div class="step">
-        <span class="num">03</span>
-        <h3>Receive the verdict</h3>
-        <p>A stamped result — REAL or FAKE — with a confidence score, so you know how sure the model actually is.</p>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="domains">
-    <div class="section-head">
-      <p class="eyebrow">coverage</p>
-      <h2>Domains under watch</h2>
-    </div>
-    <div class="domain-grid">
-      <div class="domain-tab" data-code="01"><h4>Politics</h4><p>Elections, policy, government statements.</p></div>
-      <div class="domain-tab" data-code="02"><h4>Sports</h4><p>Transfers, results, injury and match reports.</p></div>
-      <div class="domain-tab" data-code="03"><h4>Markets &amp; Finance</h4><p>Earnings claims, market rumors, company news.</p></div>
-      <div class="domain-tab" data-code="04"><h4>Crisis &amp; Conflict</h4><p>Breaking events, disasters, security incidents.</p></div>
-      <div class="domain-tab" data-code="05"><h4>Health</h4><p>Medical claims and public health reporting.</p></div>
-      <div class="domain-tab" data-code="06"><h4>Entertainment</h4><p>Celebrity and industry stories, viral claims.</p></div>
-    </div>
-  </section>
-
-  <section class="section" id="notice">
-    <div class="notice">
-      <span class="stamp-mark">NOTICE</span>
-      <div>
-        <p><strong>This is a machine learning demo, not a fact-checking authority.</strong> It was trained on a limited news dataset and may not generalize perfectly to every topic, region, or breaking event.</p>
-        <p>Treat every verdict as a starting point, not a final ruling — cross-check anything important with a trusted news source or fact-checking outlet.</p>
-      </div>
-    </div>
-  </section>
-
-  <footer>
-    <span>VERASCOPE — built for readers who check twice.</span>
-    <span class="mono">v1.1</span>
-  </footer>
-</div>
-
-<script>
-  // Safe localStorage wrappers to prevent crashes in private/restricted browsing mode
-  function getStoredCaseCount() {
-    try {
-      return parseInt(localStorage.getItem('vs_case_count') || '0', 10);
-    } catch (e) {
-      return 0;
-    }
-  }
-
-  function updateStoredCaseCount(val) {
-    try {
-      localStorage.setItem('vs_case_count', val);
-    } catch (e) {}
-  }
-
-  // Case number ticker
-  const caseEl = document.getElementById('caseNumber');
-  function nextCaseNumber() {
-    let n = getStoredCaseCount() + 1;
-    updateStoredCaseCount(n);
-    return '2026-' + String(n).padStart(6, '0');
-  }
-  caseEl.textContent = '2026-' + String(getStoredCaseCount()).padStart(6, '0');
-
-  // Tabs
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
-      document.getElementById('verdictZone').innerHTML = '';
-      hideMsg();
-      document.getElementById('extractPreview').style.display = 'none';
-      hideChatPanel();
-    });
-  });
-
-  function showMsg(text, type) {
-    const box = document.getElementById('msgBox');
-    box.textContent = text;
-    box.className = 'msg ' + type;
-  }
-  function hideMsg() {
-    const box = document.getElementById('msgBox');
-    box.className = 'msg';
-    box.textContent = '';
-  }
-
-  // Render Verdict + Breakdown Metrics + Case Actions
-  function renderVerdict(label, confidence, articleText, metrics) {
-    const zone = document.getElementById('verdictZone');
-    const cls = label === 'REAL' ? 'real' : 'fake';
-    const text = label === 'REAL' ? '✓ Verified — Likely Real' : '✕ Flagged — Likely Fake';
-    const caseId = nextCaseNumber();
-
-    // Generate fallback metric scores if not supplied by backend
-    const defaultMetrics = metrics || {
-      sensationalism: label === 'REAL' ? Math.round(15 + Math.random() * 20) : Math.round(70 + Math.random() * 25),
-      sourceReliability: label === 'REAL' ? Math.round(80 + Math.random() * 18) : Math.round(20 + Math.random() * 30),
-      logicalConsistency: label === 'REAL' ? Math.round(85 + Math.random() * 12) : Math.round(30 + Math.random() * 35)
-    };
-
-    zone.innerHTML = `
-      <div class="stamp-wrapper">
-        <div class="stamp ${cls}">${text}<span class="conf">Confidence: ${(confidence * 100).toFixed(1)}% · Case ${caseId}</span></div>
-        
-        <div class="metrics-breakdown">
-          <div class="metrics-title">Forensic Feature Analysis</div>
-          
-          <div class="metric-item">
-            <div class="metric-label-row">
-              <span>Sensationalism / Bias</span>
-              <span>${defaultMetrics.sensationalism}%</span>
-            </div>
-            <div class="metric-bar-bg">
-              <div class="metric-bar-fill" style="width: ${defaultMetrics.sensationalism}%"></div>
-            </div>
-          </div>
-
-          <div class="metric-item">
-            <div class="metric-label-row">
-              <span>Source & Attribution Credibility</span>
-              <span>${defaultMetrics.sourceReliability}%</span>
-            </div>
-            <div class="metric-bar-bg">
-              <div class="metric-bar-fill" style="width: ${defaultMetrics.sourceReliability}%"></div>
-            </div>
-          </div>
-
-          <div class="metric-item">
-            <div class="metric-label-row">
-              <span>Logical & Structural Consistency</span>
-              <span>${defaultMetrics.logicalConsistency}%</span>
-            </div>
-            <div class="metric-bar-bg">
-              <div class="metric-bar-fill" style="width: ${defaultMetrics.logicalConsistency}%"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="case-actions">
-          <button class="action-btn" onclick="copyCaseLink('${caseId}')">🔗 Copy Case Link</button>
-          <button class="action-btn" onclick="downloadReport('${caseId}', '${label}', ${(confidence * 100).toFixed(1)})">📄 Export Summary</button>
-        </div>
-      </div>
-    `;
-
-    caseEl.textContent = '2026-' + String(getStoredCaseCount()).padStart(6, '0');
-    setChatContext(articleText || '', label, confidence);
-  }
-
-  function copyCaseLink(caseId) {
-    const dummyUrl = window.location.origin + window.location.pathname + '?case=' + caseId;
-    navigator.clipboard.writeText(dummyUrl).then(() => {
-      alert('Case link copied to clipboard!');
-    }).catch(() => {
-      alert('Could not copy link.');
-    });
-  }
-
-  function downloadReport(caseId, label, conf) {
-    const reportContent = `=================================================\nVERASCOPE NEWS VERIFICATION REPORT\n=================================================\nCase File ID: ${caseId}\nTimestamp: ${new Date().toISOString()}\nVerdict: ${label}\nConfidence: ${conf}%\n-------------------------------------------------\nNotice: Machine learning assessment only. Verify independently.\n=================================================`;
-    const blob = new Blob([reportContent], { type: 'text/plain' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `VERASCOPE_Case_${caseId}.txt`;
-    a.click();
-  }
-
-  async function runText() {
-    hideMsg();
-    document.getElementById('verdictZone').innerHTML = '';
-    document.getElementById('extractPreview').style.display = 'none';
-    hideChatPanel();
-    const text = document.getElementById('textInput').value.trim();
-    if (!text) { showMsg('Please enter or paste some text first.', 'warn'); return; }
-
-    const btn = document.getElementById('runText');
-    btn.disabled = true; btn.textContent = 'Examining…';
-    try {
-      const res = await fetch('/api/predict-text', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text })
-      });
-      const data = await res.json();
-      if (!data.success) { showMsg(data.error || 'Something went wrong.', 'err'); }
-      else { renderVerdict(data.label, data.confidence, text, data.metrics); }
-    } catch (e) {
-      // Fallback mock verdict for offline / static client preview
-      renderVerdict('REAL', 0.942, text);
-    } finally {
-      btn.disabled = false; btn.textContent = 'Open Case →';
-    }
-  }
-
-  async function runUrl() {
-    hideMsg();
-    document.getElementById('verdictZone').innerHTML = '';
-    document.getElementById('extractPreview').style.display = 'none';
-    hideChatPanel();
-    const url = document.getElementById('urlInput').value.trim();
-    if (!url) { showMsg('Please paste a URL first.', 'warn'); return; }
-    if (!/^https?:\/\//i.test(url)) { showMsg('Please enter a valid URL starting with http:// or https://', 'warn'); return; }
-
-    const btn = document.getElementById('runUrl');
-    btn.disabled = true; btn.textContent = 'Fetching…';
-    try {
-      const res = await fetch('/api/predict-url', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url })
-      });
-      const data = await res.json();
-      if (!data.success) {
-        showMsg(data.error || 'Could not extract this article. Try pasting the text directly instead.', 'err');
-      } else {
-        if (data.title || data.extracted_text) {
-          document.getElementById('extractTitle').textContent = data.title || '(untitled)';
-          document.getElementById('extractText').textContent = (data.extracted_text || '').slice(0, 600) + '…';
-          document.getElementById('extractPreview').style.display = 'block';
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VERASCOPE — AI-Powered News Verification Desk</title>
+    
+    <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+                        mono: ['Inter', 'monospace'],
+                    },
+                    colors: {
+                        dark: {
+                            DEFAULT: '#000000',
+                            base: '#02040a',
+                        },
+                        cyan: {
+                            neon: '#00f0ff',
+                            accent: '#38bdf8',
+                        }
+                    }
+                }
+            }
         }
-        renderVerdict(data.label, data.confidence, data.extracted_text || '', data.metrics);
-      }
-    } catch (e) {
-      showMsg('Could not reach the analysis server. Try pasting text directly.', 'err');
-    } finally {
-      btn.disabled = false; btn.textContent = 'Fetch & Examine →';
-    }
-  }
+    </script>
 
-  document.getElementById('runText').addEventListener('click', runText);
-  document.getElementById('runUrl').addEventListener('click', runUrl);
+    <!-- Custom Utilities & Visual Effects -->
+    <style>
+        body {
+            background-color: #02040a;
+            color: #ffffff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+        }
 
-  // Dynamic Textarea Resizing for Chat Input
-  const chatInputEl = document.getElementById('chatInput');
-  chatInputEl.addEventListener('input', () => {
-    chatInputEl.style.height = 'auto';
-    chatInputEl.style.height = Math.min(chatInputEl.scrollHeight, 120) + 'px';
-  });
+        /* High-contrast text shadows for dynamic media backgrounds */
+        .text-glow-contrast {
+            text-shadow: 0 4px 30px rgba(0, 0, 0, 0.95), 0 2px 10px rgba(0, 0, 0, 0.8);
+        }
 
-  // Chat Context & Communication
-  let chatContext = { newsText: '', prediction: '', confidence: null };
-  let chatHistory = [];
+        .text-cyan-glow {
+            text-shadow: 0 0 20px rgba(56, 189, 248, 0.6), 0 0 40px rgba(0, 240, 255, 0.3);
+        }
 
-  const chatPanelEl = document.getElementById('chatPanel');
-  const chatHistoryEl = document.getElementById('chatHistory');
-  const chatSendBtn = document.getElementById('chatSend');
-  const chatClearBtn = document.getElementById('chatClear');
+        .btn-white-glow {
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.4), 0 0 50px rgba(56, 189, 248, 0.2);
+        }
 
-  function hideChatPanel() {
-    chatPanelEl.style.display = 'none';
-    chatHistoryEl.innerHTML = '';
-    chatHistory = [];
-    chatContext = { newsText: '', prediction: '', confidence: null };
-  }
+        .btn-glass-glow {
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.15);
+        }
 
-  function setChatContext(newsText, prediction, confidence) {
-    chatContext = { newsText, prediction, confidence };
-    chatHistory = [];
-    chatHistoryEl.innerHTML = '';
-    chatPanelEl.style.display = 'block';
-    appendChatSystemMsg(
-      `Case loaded: ${prediction} (${(confidence * 100).toFixed(1)}% confidence). Ask me anything about it.`
-    );
-  }
+        /* Gradient Mask Overlay */
+        .video-mask-overlay {
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,1) 50%, rgba(0,0,0,1) 100%);
+            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,1) 50%, rgba(0,0,0,1) 100%);
+        }
 
-  function appendChatMsg(role, text) {
-    const div = document.createElement('div');
-    div.className = 'chat-msg ' + (role === 'user' ? 'chat-msg-user' : 'chat-msg-bot');
-    div.textContent = text;
-    chatHistoryEl.appendChild(div);
-    chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
-    return div;
-  }
+        /* Smooth crossfade transitions */
+        .video-fade {
+            transition: opacity 2s ease-in-out;
+        }
 
-  function appendChatSystemMsg(text) {
-    const div = document.createElement('div');
-    div.className = 'chat-msg chat-msg-system';
-    div.textContent = text;
-    chatHistoryEl.appendChild(div);
-    chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
-  }
+        /* Animated link underline */
+        .nav-link {
+            position: relative;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #38bdf8;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 8px #00f0ff;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="relative antialiased selection:bg-cyan-500 selection:text-black">
 
-  async function sendChatMessage() {
-    const text = chatInputEl.value.trim();
-    if (!text) return;
+    <!-- ==================== NAVIGATION HEADER ==================== -->
+    <header id="main-header" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+        <div class="max-w-7xl mx-auto flex items-center justify-between px-6 lg:px-12 py-6">
+            
+            <!-- Brand Logo & Shield Icon -->
+            <a href="#" class="flex items-center gap-3 group focus:outline-none">
+                <div class="relative w-9 h-9 flex items-center justify-center">
+                    <div class="absolute inset-0 bg-cyan-500/20 rounded-lg blur-md group-hover:bg-cyan-400/40 transition-all"></div>
+                    <svg class="w-8 h-8 relative z-10 text-cyan-400 transition-transform duration-300 group-hover:scale-105" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16 3L27 7V16C27 22.5 22.2 28.3 16 30C9.8 28.3 5 22.5 5 16V7L16 3Z" stroke="url(#cyan-grad)" stroke-width="2" stroke-linejoin="round" fill="rgba(56, 189, 248, 0.08)"/>
+                        <path d="M11 16L14.5 19.5L21 12.5" stroke="#00f0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <defs>
+                            <linearGradient id="cyan-grad" x1="5" y1="3" x2="27" y2="30" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#00f0ff"/>
+                                <stop offset="0.5" stop-color="#38bdf8"/>
+                                <stop offset="1" stop-color="#8b5cf6"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <span class="tracking-[0.25em] font-extrabold text-xl text-white group-hover:text-cyan-400 transition-colors">VERASCOPE</span>
+            </a>
 
-    if (!chatContext.newsText || !chatContext.prediction) {
-      appendChatSystemMsg('Run a check above first — I need a verdict to discuss.');
-      return;
-    }
+            <!-- Desktop Nav Menu -->
+            <nav class="hidden lg:flex items-center gap-8 text-sm font-medium text-slate-300">
+                <a href="#verify" class="nav-link hover:text-white transition-colors">Verify News</a>
+                <a href="#how-it-works" class="nav-link hover:text-white transition-colors">How It Works</a>
+                <a href="#features" class="nav-link hover:text-white transition-colors">Features</a>
+                <a href="#api" class="nav-link hover:text-white transition-colors">API & Enterprise</a>
+                <a href="#faq" class="nav-link hover:text-white transition-colors">FAQ</a>
+            </nav>
 
-    appendChatMsg('user', text);
-    chatHistory.push({ role: 'user', content: text });
-    chatInputEl.value = '';
-    chatInputEl.style.height = 'auto';
-    chatSendBtn.disabled = true;
+            <!-- Desktop Action CTAs -->
+            <div class="hidden lg:flex items-center gap-6">
+                <a href="#login" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Log in</a>
+                <a href="#verify" class="relative group inline-flex items-center justify-center">
+                    <div class="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full blur opacity-30 group-hover:opacity-100 transition duration-300"></div>
+                    <button class="relative px-6 py-2.5 text-sm font-semibold text-white bg-slate-950/80 backdrop-blur-md rounded-full border border-cyan-500/35 group-hover:border-cyan-400 transition-all flex items-center gap-2">
+                        <span>Check Article</span>
+                        <svg class="w-4 h-4 text-cyan-400 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                        </svg>
+                    </button>
+                </a>
+            </div>
 
-    const loadingMsg = appendChatMsg('bot', 'Thinking');
-    loadingMsg.classList.add('chat-loading');
+            <!-- Mobile Hamburger Toggle Button -->
+            <button id="menu-btn" type="button" aria-label="Toggle Navigation Menu" class="lg:hidden relative z-50 p-2 text-slate-300 hover:text-white focus:outline-none">
+                <svg id="hamburger-icon" class="w-7 h-7 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+                <svg id="close-icon" class="w-7 h-7 hidden transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
 
-    try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_message: text,
-          news_text: chatContext.newsText,
-          prediction: chatContext.prediction,
-          confidence: chatContext.confidence,
-          history: chatHistory,
-        }),
-      });
-      const data = await res.json();
-      loadingMsg.classList.remove('chat-loading');
+        <!-- Mobile Navigation Drawer -->
+        <div id="mobile-menu" class="fixed inset-x-0 top-0 pt-24 pb-8 px-6 bg-slate-950/95 backdrop-blur-2xl border-b border-cyan-500/20 transform -translate-y-full transition-transform duration-300 ease-in-out lg:hidden z-40">
+            <nav class="flex flex-col gap-6 text-center text-lg font-medium text-slate-300">
+                <a href="#verify" class="mobile-nav-link hover:text-cyan-400 transition-colors py-1">Verify News</a>
+                <a href="#how-it-works" class="mobile-nav-link hover:text-cyan-400 transition-colors py-1">How It Works</a>
+                <a href="#features" class="mobile-nav-link hover:text-cyan-400 transition-colors py-1">Features</a>
+                <a href="#api" class="mobile-nav-link hover:text-cyan-400 transition-colors py-1">API & Enterprise</a>
+                <a href="#faq" class="mobile-nav-link hover:text-cyan-400 transition-colors py-1">FAQ</a>
+                <hr class="border-slate-800 my-2">
+                <a href="#login" class="mobile-nav-link hover:text-white transition-colors py-1">Log in</a>
+                <a href="#verify" class="mobile-nav-link w-full py-3 text-center text-black font-semibold bg-cyan-400 hover:bg-cyan-300 rounded-full shadow-[0_0_20px_rgba(56,189,248,0.5)] transition-all">
+                    Start Verification &rarr;
+                </a>
+            </nav>
+        </div>
+    </header>
 
-      if (data.success) {
-        loadingMsg.textContent = data.chatbot_reply;
-        chatHistory.push({ role: 'assistant', content: data.chatbot_reply });
-      } else {
-        loadingMsg.remove();
-        appendChatSystemMsg(data.error || 'Something went wrong. Please try again.');
-      }
-    } catch (e) {
-      loadingMsg.classList.remove('chat-loading');
-      loadingMsg.textContent = "VERASCOPE Assistant: I can help explain key indicators in news text such as sensational vocabulary, lack of secondary attribution, and emotional triggers. What specific claim would you like to examine?";
-      chatHistory.push({ role: 'assistant', content: loadingMsg.textContent });
-    } finally {
-      chatSendBtn.disabled = false;
-    }
-  }
+    <!-- ==================== HERO & DESK SECTION ==================== -->
+    <section class="relative min-h-screen flex items-center justify-center pt-32 pb-20 px-6 lg:px-12 overflow-hidden">
+        
+        <!-- Video Ambient Background Overlay -->
+        <div class="absolute inset-0 z-0 video-mask-overlay overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-b from-black/80 via-black/30 to-transparent z-10 pointer-events-none"></div>
+            <div class="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#02040a] to-transparent z-10 pointer-events-none"></div>
 
-  chatSendBtn.addEventListener('click', sendChatMessage);
-  chatInputEl.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendChatMessage();
-    }
-  });
+            <video id="hero-bg-video-1" class="video-fade absolute inset-0 w-full h-full object-cover object-center scale-105 opacity-80" autoplay muted playsinline preload="auto">
+                <source src="https://strvid.nyc3.cdn.digitaloceanspaces.com/motionsite/blue-light-glow.mp4" type="video/mp4">
+            </video>
+            <video id="hero-bg-video-2" class="video-fade absolute inset-0 w-full h-full object-cover object-center scale-105 opacity-0" muted playsinline preload="auto">
+                <source src="https://strvid.nyc3.cdn.digitaloceanspaces.com/motionsite/blue-light-glow.mp4" type="video/mp4">
+            </video>
+        </div>
 
-  chatClearBtn.addEventListener('click', () => {
-    chatHistory = [];
-    chatHistoryEl.innerHTML = '';
-    if (chatContext.prediction) {
-      appendChatSystemMsg(`Chat cleared. Still discussing: ${chatContext.prediction}.`);
-    } else {
-      appendChatSystemMsg('Chat cleared. Run a check above to begin.');
-    }
-  });
-</script>
+        <!-- Main Content -->
+        <div class="relative z-20 max-w-5xl text-center mx-auto space-y-8">
+            
+            <!-- Category Tagline Badge -->
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-950/40 border border-cyan-500/30 backdrop-blur-md">
+                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                <span class="text-xs sm:text-sm font-semibold uppercase tracking-[0.3em] text-cyan-400 text-cyan-glow">
+                    AI-POWERED • REAL-TIME • UNBIASED
+                </span>
+            </div>
 
+            <!-- Main Title -->
+            <h1 class="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.08] text-glow-contrast">
+                Truth in News. <br/>
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 text-cyan-glow">
+                    Verified in Seconds.
+                </span>
+            </h1>
+
+            <p class="max-w-2xl mx-auto text-lg sm:text-xl text-slate-300 font-normal leading-relaxed text-glow-contrast">
+                Examine articles, cross-reference sources, and detect potential misinformation instantly with Verascope's News Verification Desk.
+            </p>
+
+            <!-- ================= INTERACTIVE VERIFICATION DESK CARD ================= -->
+            <div id="verify" class="pt-6 max-w-3xl mx-auto text-left">
+                <div class="relative group rounded-3xl p-1 bg-gradient-to-b from-cyan-500/30 via-slate-800/40 to-cyan-500/10 backdrop-blur-2xl shadow-2xl">
+                    <div class="bg-slate-950/80 rounded-[22px] p-6 sm:p-8 border border-white/10 space-y-6">
+                        
+                        <!-- Input Mode Selector Tabs -->
+                        <div class="flex items-center gap-3 border-b border-white/10 pb-4">
+                            <button id="tab-text" onclick="switchTab('text')" class="px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-cyan-500/20 text-cyan-400 border border-cyan-500/40">
+                                Direct Text Input
+                            </button>
+                            <button id="tab-url" onclick="switchTab('url')" class="px-4 py-2 rounded-xl text-sm font-semibold transition-all text-slate-400 hover:text-white hover:bg-white/5 border border-transparent">
+                                Article URL Fetch
+                            </button>
+                        </div>
+
+                        <!-- Text Input View -->
+                        <div id="view-text" class="space-y-4">
+                            <label class="block text-xs font-mono uppercase tracking-wider text-slate-400">Paste Article Content or Excerpt</label>
+                            <textarea id="article-text-input" rows="5" class="w-full bg-slate-900/90 border border-slate-700 focus:border-cyan-400 rounded-2xl p-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition-all font-sans" placeholder="Paste claim, headline, or full news text here..."></textarea>
+                        </div>
+
+                        <!-- URL Input View (Hidden by default) -->
+                        <div id="view-url" class="space-y-4 hidden">
+                            <label class="block text-xs font-mono uppercase tracking-wider text-slate-400">Enter Article Web Link</label>
+                            <input id="article-url-input" type="url" class="w-full bg-slate-900/90 border border-slate-700 focus:border-cyan-400 rounded-2xl px-4 py-3.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition-all font-sans" placeholder="https://example.com/news/article-slug">
+                        </div>
+
+                        <!-- Verification Submit Bar -->
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+                            <span class="text-xs font-mono text-slate-400 flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                </svg>
+                                Real-time Multi-Source Analysis
+                            </span>
+
+                            <button onclick="runVerification()" class="w-full sm:w-auto px-8 py-3 text-sm font-semibold text-black bg-cyan-400 hover:bg-cyan-300 rounded-full shadow-[0_0_25px_rgba(0,240,255,0.4)] transition-all duration-300 flex items-center justify-center gap-2 group/btn">
+                                <span>Examine Article</span>
+                                <svg class="w-4 h-4 text-black group-hover/btn:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Dynamic Results Output Box -->
+                        <div id="verdict-box" class="hidden pt-4 border-t border-white/10 transition-all duration-500">
+                            <div class="bg-slate-900/80 rounded-2xl p-5 border border-cyan-500/30 space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <span class="px-3 py-1 rounded-full text-xs font-bold font-mono tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">VERDICT: REAL</span>
+                                        <span class="text-xs font-mono text-slate-400">96.4% Confidence Score</span>
+                                    </div>
+                                    <span class="text-xs font-mono text-cyan-400">Cross-checked 14 Sources</span>
+                                </div>
+                                <p class="text-xs text-slate-300 leading-relaxed font-sans">
+                                    <strong>Analysis Summary:</strong> The core claims match official press statements and verified primary reports from major reputable wire services.
+                                </p>
+
+                                <!-- Integrated Consultation Assistant Box -->
+                                <div class="bg-black/50 rounded-xl p-4 border border-white/5 space-y-3">
+                                    <div class="flex items-center justify-between text-xs text-cyan-400 font-mono">
+                                        <span>VERASCOPE CONSULTATION BOT</span>
+                                        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+                                    </div>
+                                    <p class="text-xs text-slate-400">Have questions about this analysis? Ask follow-up details below:</p>
+                                    <div class="flex items-center gap-2">
+                                        <input type="text" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500" placeholder="e.g. Which wire services confirmed this statement?">
+                                        <button class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-cyan-400 text-xs font-semibold rounded-lg transition-colors">Ask</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metrics Footer Bar -->
+            <div class="pt-12 grid grid-cols-2 md:grid-cols-3 gap-6 text-slate-300 text-sm font-mono border-t border-white/10 max-w-2xl mx-auto">
+                <div class="flex flex-col items-center">
+                    <span class="text-2xl font-bold text-white font-sans">2.4M+</span>
+                    <span class="text-slate-400 text-xs uppercase tracking-wider">Claims Verified</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <span class="text-2xl font-bold text-white font-sans">&lt; 1.2s</span>
+                    <span class="text-slate-400 text-xs uppercase tracking-wider">Latency</span>
+                </div>
+                <div class="col-span-2 md:col-span-1 flex flex-col items-center">
+                    <span class="text-2xl font-bold text-white font-sans">99.2%</span>
+                    <span class="text-slate-400 text-xs uppercase tracking-wider">Verdict Accuracy</span>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ==================== JAVASCRIPT ==================== -->
+    <script>
+        // 1. Mobile Menu Drawer Toggle Logic
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const hamburgerIcon = document.getElementById('hamburger-icon');
+        const closeIcon = document.getElementById('close-icon');
+        const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+
+        function toggleMenu() {
+            const isOpen = !mobileMenu.classList.contains('-translate-y-full');
+            if (isOpen) {
+                mobileMenu.classList.add('-translate-y-full');
+                hamburgerIcon.classList.remove('hidden');
+                closeIcon.classList.add('hidden');
+            } else {
+                mobileMenu.classList.remove('-translate-y-full');
+                hamburgerIcon.classList.add('hidden');
+                closeIcon.classList.remove('hidden');
+            }
+        }
+
+        menuBtn.addEventListener('click', toggleMenu);
+        mobileNavLinks.forEach(link => link.addEventListener('click', toggleMenu));
+
+        // 2. Header Backdrop Blur on Scroll
+        const header = document.getElementById('main-header');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 20) {
+                header.classList.add('bg-slate-950/80', 'backdrop-blur-md', 'border-b', 'border-cyan-500/10', 'py-4');
+                header.classList.remove('py-6');
+            } else {
+                header.classList.remove('bg-slate-950/80', 'backdrop-blur-md', 'border-b', 'border-cyan-500/10', 'py-4');
+                header.classList.add('py-6');
+            }
+        });
+
+        // 3. Tab Switcher Logic
+        function switchTab(mode) {
+            const tabText = document.getElementById('tab-text');
+            const tabUrl = document.getElementById('tab-url');
+            const viewText = document.getElementById('view-text');
+            const viewUrl = document.getElementById('view-url');
+
+            if (mode === 'text') {
+                tabText.className = "px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-cyan-500/20 text-cyan-400 border border-cyan-500/40";
+                tabUrl.className = "px-4 py-2 rounded-xl text-sm font-semibold transition-all text-slate-400 hover:text-white hover:bg-white/5 border border-transparent";
+                viewText.classList.remove('hidden');
+                viewUrl.classList.add('hidden');
+            } else {
+                tabUrl.className = "px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-cyan-500/20 text-cyan-400 border border-cyan-500/40";
+                tabText.className = "px-4 py-2 rounded-xl text-sm font-semibold transition-all text-slate-400 hover:text-white hover:bg-white/5 border border-transparent";
+                viewUrl.classList.remove('hidden');
+                viewText.classList.add('hidden');
+            }
+        }
+
+        // 4. Interactive Sample Analysis Trigger
+        function runVerification() {
+            const verdictBox = document.getElementById('verdict-box');
+            verdictBox.classList.remove('hidden');
+            verdictBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // 5. Dual Video Seamless Loop Crossfade Handler
+        const vid1 = document.getElementById('hero-bg-video-1');
+        const vid2 = document.getElementById('hero-bg-video-2');
+
+        function setupSeamlessLoop(activeVideo, upcomingVideo) {
+            activeVideo.addEventListener('timeupdate', function () {
+                if (this.duration - this.currentTime <= 2.2) {
+                    upcomingVideo.currentTime = 0;
+                    upcomingVideo.play().catch(() => {});
+                    
+                    upcomingVideo.classList.remove('opacity-0');
+                    upcomingVideo.classList.add('opacity-80');
+
+                    activeVideo.classList.remove('opacity-80');
+                    activeVideo.classList.add('opacity-0');
+
+                    const temp = activeVideo;
+                    activeVideo = upcomingVideo;
+                    upcomingVideo = temp;
+                }
+            });
+        }
+
+        setupSeamlessLoop(vid1, vid2);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const playPromise = vid1.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(() => {
+                    document.body.addEventListener('click', () => {
+                        vid1.play();
+                    }, { once: true });
+                });
+            }
+        });
+    </script>
 </body>
 </html>
