@@ -537,9 +537,9 @@
       <div class="case-file-body">
 
         <div class="panel active" id="panel-text">
-          <textarea id="textInput" rows="6" placeholder="Paste the full article text here (a few paragraphs works best)..."></textarea>
+          <textarea id="textInput" rows="6" placeholder="Paste headline, excerpt, or full article text here..."></textarea>
           <div class="run-row">
-            <span class="hint">Minimum ~15 words for a reliable read.</span>
+            <span class="hint">Accepts input of any length.</span>
             <button class="run" id="runText">Open Case →</button>
           </div>
         </div>
@@ -684,8 +684,7 @@
     document.getElementById('extractPreview').style.display = 'none';
     hideChatPanel();
     const text = document.getElementById('textInput').value.trim();
-    if (!text) { showMsg('Please paste some article text first.', 'warn'); return; }
-    if (text.split(/\s+/).length < 15) { showMsg('This looks quite short — paste at least a few sentences for a reliable read.', 'warn'); return; }
+    if (!text) { showMsg('Please enter or paste some text first.', 'warn'); return; }
 
     const btn = document.getElementById('runText');
     btn.disabled = true; btn.textContent = 'Examining…';
