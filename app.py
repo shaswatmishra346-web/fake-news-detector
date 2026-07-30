@@ -40,7 +40,8 @@ def extract_article_from_url(url):
         article = Article(url)
         article.download()
         article.parse()
-        if article.text and len(article.text.strip().split()) >= 15:
+        # FIXED: Removed the 15-word check here
+        if article.text and article.text.strip():
             return {"success": True, "title": article.title, "text": article.text}
     except Exception:
         pass
@@ -58,9 +59,10 @@ def extract_article_from_url(url):
         text = " ".join(p.get_text() for p in paragraphs).strip()
         title = soup.title.string.strip() if soup.title and soup.title.string else ""
 
-        if text and len(text.split()) >= 15:
+        # FIXED: Removed the 15-word check here
+        if text:
             return {"success": True, "title": title, "text": text}
-        return {"success": False, "error": "Not enough readable article text found on this page."}
+        return {"success": False, "error": "No readable text found on this page."}
     except Exception as e:
         return {"success": False, "error": f"Could not fetch this URL ({e})."}
 
@@ -76,12 +78,13 @@ def home():
 @app.route("/api/predict-text", methods=["POST"])
 def api_predict_text():
     data = request.get_json(force=True, silent=True) or {}
-    text = data.get("text", "")
+    text = data.get("text", "").strip()
 
-    if not text or len(text.strip().split()) < 15:
+    # FIXED: Replaced length check with a simple empty-string check
+    if not text:
         return jsonify({
             "success": False,
-            "error": "Please provide at least a few sentences of article text."
+            "error": "Please enter or paste some text first."
         }), 400
 
     label, confidence = predict_news(text)
