@@ -141,7 +141,7 @@
             </div>
 
             <!-- Mobile Hamburger Toggle Button -->
-            <button id="menu-btn" type="button" aria-label="Toggle Navigation Menu" class="lg:hidden relative z-50 p-2 text-slate-300 hover:text-white focus:outline-none">
+            <button id="menu-btn" type="button" aria-label="Toggle Navigation Menu" aria-expanded="false" class="lg:hidden relative z-50 p-2 text-slate-300 hover:text-white focus:outline-none">
                 <svg id="hamburger-icon" class="w-7 h-7 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                 </svg>
@@ -224,13 +224,13 @@
 
                         <!-- Text Input View -->
                         <div id="view-text" class="space-y-4">
-                            <label class="block text-xs font-mono uppercase tracking-wider text-slate-400">Paste Article Content or Excerpt</label>
+                            <label for="article-text-input" class="block text-xs font-mono uppercase tracking-wider text-slate-400">Paste Article Content or Excerpt</label>
                             <textarea id="article-text-input" rows="5" class="w-full bg-slate-900/90 border border-slate-700 focus:border-cyan-400 rounded-2xl p-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition-all font-sans" placeholder="Paste claim, headline, or full news text here..."></textarea>
                         </div>
 
                         <!-- URL Input View (Hidden by default) -->
                         <div id="view-url" class="space-y-4 hidden">
-                            <label class="block text-xs font-mono uppercase tracking-wider text-slate-400">Enter Article Web Link</label>
+                            <label for="article-url-input" class="block text-xs font-mono uppercase tracking-wider text-slate-400">Enter Article Web Link</label>
                             <input id="article-url-input" type="url" class="w-full bg-slate-900/90 border border-slate-700 focus:border-cyan-400 rounded-2xl px-4 py-3.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition-all font-sans" placeholder="https://example.com/news/article-slug">
                         </div>
 
@@ -303,6 +303,12 @@
         </div>
     </section>
 
+    <!-- Placeholder Section IDs for Smooth Scroll Navigation -->
+    <div id="how-it-works"></div>
+    <div id="features"></div>
+    <div id="api"></div>
+    <div id="faq"></div>
+
     <!-- ==================== JAVASCRIPT ==================== -->
     <script>
         // 1. Mobile Menu Drawer Toggle Logic
@@ -318,10 +324,12 @@
                 mobileMenu.classList.add('-translate-y-full');
                 hamburgerIcon.classList.remove('hidden');
                 closeIcon.classList.add('hidden');
+                menuBtn.setAttribute('aria-expanded', 'false');
             } else {
                 mobileMenu.classList.remove('-translate-y-full');
                 hamburgerIcon.classList.add('hidden');
                 closeIcon.classList.remove('hidden');
+                menuBtn.setAttribute('aria-expanded', 'true');
             }
         }
 
@@ -367,30 +375,35 @@
             verdictBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
-        // 5. Dual Video Seamless Loop Crossfade Handler
+        // 5. Dual Video Seamless Loop Crossfade Handler (Fixed)
         const vid1 = document.getElementById('hero-bg-video-1');
         const vid2 = document.getElementById('hero-bg-video-2');
 
-        function setupSeamlessLoop(activeVideo, upcomingVideo) {
-            activeVideo.addEventListener('timeupdate', function () {
-                if (this.duration - this.currentTime <= 2.2) {
-                    upcomingVideo.currentTime = 0;
-                    upcomingVideo.play().catch(() => {});
-                    
-                    upcomingVideo.classList.remove('opacity-0');
-                    upcomingVideo.classList.add('opacity-80');
+        let activeVideo = vid1;
+        let upcomingVideo = vid2;
 
-                    activeVideo.classList.remove('opacity-80');
-                    activeVideo.classList.add('opacity-0');
+        function handleTimeUpdate() {
+            if (activeVideo.duration && activeVideo.duration - activeVideo.currentTime <= 2.2) {
+                activeVideo.removeEventListener('timeupdate', handleTimeUpdate);
 
-                    const temp = activeVideo;
-                    activeVideo = upcomingVideo;
-                    upcomingVideo = temp;
-                }
-            });
+                upcomingVideo.currentTime = 0;
+                upcomingVideo.play().catch(() => {});
+
+                upcomingVideo.classList.remove('opacity-0');
+                upcomingVideo.classList.add('opacity-80');
+
+                activeVideo.classList.remove('opacity-80');
+                activeVideo.classList.add('opacity-0');
+
+                const temp = activeVideo;
+                activeVideo = upcomingVideo;
+                upcomingVideo = temp;
+
+                activeVideo.addEventListener('timeupdate', handleTimeUpdate);
+            }
         }
 
-        setupSeamlessLoop(vid1, vid2);
+        activeVideo.addEventListener('timeupdate', handleTimeUpdate);
 
         document.addEventListener('DOMContentLoaded', () => {
             const playPromise = vid1.play();
