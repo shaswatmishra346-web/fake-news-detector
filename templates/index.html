@@ -149,22 +149,35 @@
                 </button>
             </div>
 
+            <!-- Loading state -->
+            <div id="loading-box" class="hidden mt-8 border-t border-white/10 pt-6">
+                <div class="flex items-center gap-3 text-cyan-400 text-sm font-mono">
+                    <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    Analyzing...
+                </div>
+            </div>
+
+            <!-- Error state -->
+            <div id="error-box" class="hidden mt-8 border-t border-white/10 pt-6">
+                <p id="error-text" class="text-red-400 text-sm"></p>
+            </div>
+
             <!-- Verdict Box (Hidden initially) -->
             <div id="verdict-box" class="hidden mt-8 border-t border-white/10 pt-6 space-y-6">
                 <div class="flex flex-wrap items-center justify-between gap-4">
                     <div class="flex items-center gap-3">
-                        <span class="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-mono text-xs font-bold tracking-wide">
-                            VERDICT: REAL
+                        <span id="verdict-label" class="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-mono text-xs font-bold tracking-wide">
+                            VERDICT: —
                         </span>
-                        <span class="text-slate-300 text-sm font-medium">96.4% Confidence Score</span>
+                        <span id="verdict-confidence" class="text-slate-300 text-sm font-medium">— Confidence Score</span>
                     </div>
-                    <span class="text-cyan-400 text-sm font-medium hover:underline cursor-pointer">
-                        Cross-checked 14 Sources
-                    </span>
                 </div>
 
                 <p class="text-slate-200 text-sm leading-relaxed">
-                    <strong class="text-white">Analysis Summary:</strong> The core claims match official press statements and verified primary reports from major reputable wire services.
+                    <strong class="text-white">Analysis Summary:</strong> <span id="verdict-reasoning">—</span>
                 </p>
 
                 <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 space-y-4">
@@ -396,10 +409,93 @@
             }
         }
 
-        function runVerification() {
+        // Keep track of the last analyzed article so the chatbot has context
+        let lastAnalysis = { text: '', label: '', confidence: 0 };
+
+        async function runVerification() {
             const verdictBox = document.getElementById('verdict-box');
-            verdictBox.classList.remove('hidden');
-            verdictBox.scrollIntoView({ behavior: 'smooth' });
+            const loadingBox = document.getElementById('loading-box');
+            const errorBox = document.getElementById('error-box');
+            const errorText = document.getElementById('error-text');
+
+            verdictBox.classList.add('hidden');
+            errorBox.classList.add('hidden');
+
+            const isTextMode = !document.getElementById('view-text').classList.contains('hidden');
+
+            let endpoint, body;
+            if (isTextMode) {
+                const text = document.getElementById('claim-text-input').value.trim();
+                if (!text) {
+                    errorText.textContent = 'Please paste some text to analyze.';
+                    errorBox.classList.remove('hidden');
+                    return;
+                }
+                endpoint = '/api/predict-text';
+                body = { text };
+            } else {
+                const url = document.getElementById('claim-url-input').value.trim();
+                if (!url) {
+                    errorText.textContent = 'Please enter a URL to analyze.';
+                    errorBox.classList.remove('hidden');
+                    return;
+                }
+                endpoint = '/api/predict-url';
+                body = { url };
+            }
+
+            loadingBox.classList.remove('hidden');
+            loadingBox.scrollIntoView({ behavior: 'smooth' });
+
+            try {
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+
+                loadingBox.classList.add('hidden');
+
+                if (!data.success) {
+                    errorText.textContent = data.error || 'Something went wrong analyzing this.';
+                    errorBox.classList.remove('hidden');
+                    return;
+                }
+
+                // Save context for the chatbot
+                lastAnalysis.text = data.extracted_text || body.text || '';
+                lastAnalysis.label = data.label;
+                lastAnalysis.confidence = data.confidence;
+
+                // Reset chat history when a new article is analyzed
+                document.getElementById('chat-messages').innerHTML = '';
+
+                renderVerdict(data);
+                verdictBox.classList.remove('hidden');
+                verdictBox.scrollIntoView({ behavior: 'smooth' });
+            } catch (err) {
+                loadingBox.classList.add('hidden');
+                errorText.textContent = 'Could not reach the server. Please try again.';
+                errorBox.classList.remove('hidden');
+            }
+        }
+
+        function renderVerdict(data) {
+            const labelEl = document.getElementById('verdict-label');
+            const confEl = document.getElementById('verdict-confidence');
+            const reasoningEl = document.getElementById('verdict-reasoning');
+
+            const isReal = data.label === 'REAL';
+            labelEl.textContent = `VERDICT: ${data.label}`;
+            labelEl.className = isReal
+                ? 'px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-mono text-xs font-bold tracking-wide'
+                : 'px-3 py-1 rounded-full bg-red-500/20 border border-red-500/40 text-red-400 font-mono text-xs font-bold tracking-wide';
+
+            const pct = (data.confidence * 100).toFixed(1);
+            confEl.textContent = `${pct}% Confidence Score`;
+
+            reasoningEl.textContent = data.reasoning || 'No additional details provided.';
         }
 
         function handleKeyPress(e) {
@@ -408,15 +504,31 @@
             }
         }
 
-        function askBot() {
+        // Running chat history sent to /api/chat so it has conversational context
+        let chatHistory = [];
+
+        async function askBot() {
             const inputEl = document.getElementById('bot-input');
             const chatContainer = document.getElementById('chat-messages');
             const rawText = inputEl.value.trim();
 
             if (!rawText) return;
 
-            const userText = escapeHTML(rawText);
+            if (!lastAnalysis.label) {
+                const warnHtml = `
+                    <div class="flex justify-start">
+                        <div class="bg-slate-800/90 border border-slate-700 text-slate-300 text-xs px-3 py-2.5 rounded-xl max-w-[85%] leading-relaxed">
+                            <span class="text-cyan-400 font-semibold block mb-1">Verascope Bot:</span>
+                            Please run an analysis first, then I can answer questions about it.
+                        </div>
+                    </div>
+                `;
+                chatContainer.insertAdjacentHTML('beforeend', warnHtml);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                return;
+            }
 
+            const userText = escapeHTML(rawText);
             const userMsgHtml = `
                 <div class="flex justify-end">
                     <div class="bg-cyan-600/30 border border-cyan-500/40 text-cyan-200 text-xs px-3 py-2 rounded-xl max-w-[85%] break-words">
@@ -428,29 +540,66 @@
             inputEl.value = '';
             chatContainer.scrollTop = chatContainer.scrollHeight;
 
-            setTimeout(() => {
-                let botReply = "Hello! I can provide additional context, source breakdowns, or bias metrics regarding this analysis result. What specific claim details would you like to explore?";
-                
-                const lower = rawText.toLowerCase();
-                if (lower.includes('hi') || lower.includes('hello') || lower.includes('hey')) {
-                    botReply = "Hello! Feel free to ask about the 14 cross-checked sources, methodology, or specific parts of this claim analysis.";
-                } else if (lower.includes('source') || lower.includes('where')) {
-                    botReply = "Sources include Reuters, AP News, official agency wire statements, and verified digital transcripts.";
-                } else if (lower.includes('accuracy') || lower.includes('confidence') || lower.includes('score')) {
-                    botReply = "The 96.4% confidence score is generated based on direct textual correlation and source domain authority ratings.";
-                }
+            // Typing indicator
+            const typingId = 'typing-' + Date.now();
+            const typingHtml = `
+                <div class="flex justify-start" id="${typingId}">
+                    <div class="bg-slate-800/90 border border-slate-700 text-slate-400 text-xs px-3 py-2.5 rounded-xl">
+                        Verascope Bot is typing…
+                    </div>
+                </div>
+            `;
+            chatContainer.insertAdjacentHTML('beforeend', typingHtml);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            try {
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_message: rawText,
+                        news_text: lastAnalysis.text,
+                        prediction: lastAnalysis.label,
+                        confidence: lastAnalysis.confidence,
+                        history: chatHistory
+                    })
+                });
+                const data = await res.json();
+
+                document.getElementById(typingId)?.remove();
+
+                const botReply = data.success
+                    ? data.chatbot_reply
+                    : (data.error || 'Something went wrong. Please try again.');
 
                 const botMsgHtml = `
                     <div class="flex justify-start">
                         <div class="bg-slate-800/90 border border-slate-700 text-slate-300 text-xs px-3 py-2.5 rounded-xl max-w-[85%] leading-relaxed">
                             <span class="text-cyan-400 font-semibold block mb-1">Verascope Bot:</span>
-                            ${botReply}
+                            ${escapeHTML(botReply)}
                         </div>
                     </div>
                 `;
                 chatContainer.insertAdjacentHTML('beforeend', botMsgHtml);
                 chatContainer.scrollTop = chatContainer.scrollHeight;
-            }, 400);
+
+                if (data.success) {
+                    chatHistory.push({ role: 'user', content: rawText });
+                    chatHistory.push({ role: 'assistant', content: data.chatbot_reply });
+                }
+            } catch (err) {
+                document.getElementById(typingId)?.remove();
+                const errHtml = `
+                    <div class="flex justify-start">
+                        <div class="bg-slate-800/90 border border-slate-700 text-slate-300 text-xs px-3 py-2.5 rounded-xl max-w-[85%] leading-relaxed">
+                            <span class="text-cyan-400 font-semibold block mb-1">Verascope Bot:</span>
+                            Could not reach the server. Please try again.
+                        </div>
+                    </div>
+                `;
+                chatContainer.insertAdjacentHTML('beforeend', errHtml);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
         }
 
         function toggleFaq(id) {
