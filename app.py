@@ -1,7 +1,7 @@
 import os
 import json
+import requests
 from flask import Flask, render_template, request, jsonify
-from groq import Groq
 
 # --- ADDED FOR CHATBOT: import the new blueprint (isolated in chatbot.py) ---
 from chatbot import chatbot_bp
@@ -11,12 +11,13 @@ app = Flask(__name__)
 app.register_blueprint(chatbot_bp)
 
 # ----------------------------
-# LLM client setup
+# Groq API setup (matches chatbot.py's setup — same env var, same endpoint)
 # ----------------------------
-# Requires GROQ_API_KEY to be set as an environment variable.
-client = Groq()
-
-MODEL_NAME = "llama-3.3-70b-versatile"
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
+# Using the larger model here (vs chatbot.py's 8b-instant) since this is the
+# core verdict logic and benefits more from stronger reasoning than raw speed.
+GROQ_MODEL = "llama-3.3-70b-versatile"
 
 
 def predict_news_llm(text):
@@ -41,13 +42,29 @@ Text to analyze:
 Respond with ONLY a JSON object, no other text, in this exact format:
 {{"label": "REAL" or "FAKE", "confidence": <float between 0 and 1>, "reasoning": "<1-2 sentence explanation>"}}"""
 
-    response = client.chat.completions.create(
-        model=MODEL_NAME,
-        max_tokens=300,
-        messages=[{"role": "user", "content": prompt}],
-    )
+    if not GROQ_API_KEY:
+        return "REAL", 0.5, "Chatbot/model service is not configured (missing GROQ_API_KEY)."
 
-    raw = response.choices[0].message.content.strip()
+    try:
+        resp = requests.post(
+            GROQ_API_URL,
+            headers={
+                "Authorization": f"Bearer {GROQ_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": GROQ_MODEL,
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.2,
+                "max_tokens": 300,
+            },
+            timeout=20,
+        )
+        resp.raise_for_status()
+        payload = resp.json()
+        raw = payload["choices"][0]["message"]["content"].strip()
+    except (requests.exceptions.RequestException, KeyError, IndexError) as e:
+        return "REAL", 0.5, f"Could not reach the verification service ({e})."
 
     # Strip markdown code fences if the model added them despite instructions
     if raw.startswith("```"):
